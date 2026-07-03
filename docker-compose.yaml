@@ -54,7 +54,7 @@ services:
     extends:
       file: catalog/docker-compose-base.yaml
       service: catalog
-    image: ghcr.io/misarch/catalog:main
+    image: misarch-go/catalogatest
   catalog-db:
     extends:
       file: catalog/docker-compose-base.yaml
@@ -80,7 +80,7 @@ services:
     extends:
       file: wishlist/docker-compose-base.yaml
       service: wishlist
-    image: ghcr.io/misarch/wishlist:main
+    image: misarch-go/wishlistatest
   wishlist-db:
     extends:
       file: wishlist/docker-compose-base.yaml
@@ -106,7 +106,7 @@ services:
     extends:
       file: shoppingcart/docker-compose-base.yaml
       service: shoppingcart
-    image: ghcr.io/misarch/shoppingcart:main
+    image: misarch-go/shoppingcartatest
   shoppingcart-db:
     extends:
       file: shoppingcart/docker-compose-base.yaml
@@ -132,7 +132,7 @@ services:
     extends:
       file: notification/docker-compose-base.yaml
       service: notification
-    image: ghcr.io/misarch/notification:main
+    image: misarch-go/notificationatest
   notification-db:
     extends:
       file: notification/docker-compose-base.yaml
@@ -158,7 +158,7 @@ services:
     extends:
       file: user/docker-compose-base.yaml
       service: user
-    image: ghcr.io/misarch/user:main
+    image: misarch-go/useratest
   user-db:
     extends:
       file: user/docker-compose-base.yaml
@@ -213,7 +213,7 @@ services:
     extends:
       file: inventory/docker-compose-base.yaml
       service: inventory
-    image: ghcr.io/misarch/inventory:main
+    image: misarch-go/inventoryatest
   inventory-db:
     extends:
       file: inventory/docker-compose-base.yaml
@@ -243,7 +243,7 @@ services:
     extends:
       file: tax/docker-compose-base.yaml
       service: tax
-    image: ghcr.io/misarch/tax:main
+    image: misarch-go/taxatest
   tax-db:
     extends:
       file: tax/docker-compose-base.yaml
@@ -269,7 +269,7 @@ services:
     extends:
       file: review/docker-compose-base.yaml
       service: review
-    image: ghcr.io/misarch/review:main
+    image: misarch-go/reviewatest
   review-db:
     extends:
       file: review/docker-compose-base.yaml
@@ -295,7 +295,7 @@ services:
     extends:
       file: address/docker-compose-base.yaml
       service: address
-    image: ghcr.io/misarch/address:main
+    image: misarch-go/addressatest
   address-db:
     extends:
       file: address/docker-compose-base.yaml
@@ -321,7 +321,7 @@ services:
     extends:
       file: discount/docker-compose-base.yaml
       service: discount
-    image: ghcr.io/misarch/discount:main
+    image: misarch-go/discountatest
   discount-db:
     extends:
       file: discount/docker-compose-base.yaml
@@ -347,7 +347,7 @@ services:
     extends:
       file: shipment/docker-compose-base.yaml
       service: shipment
-    image: ghcr.io/misarch/shipment:main
+    image: misarch-go/shipmentatest
     environment:
       - MISARCH_SHIPMENT_PROVIDER_ENDPOINT=http://simulation:8080/shipment/register
   shipment-db:
@@ -375,7 +375,7 @@ services:
     extends:
       file: return/docker-compose-base.yaml
       service: return
-    image: ghcr.io/misarch/return:main
+    image: misarch-go/returnatest
   return-db:
     extends:
       file: return/docker-compose-base.yaml
@@ -401,7 +401,7 @@ services:
     extends:
       file: payment/docker-compose-base.yaml
       service: payment
-    image: ghcr.io/misarch/payment:main
+    image: misarch-go/paymentatest
     environment:
       PAYMENT_PROVIDER_URL: http://simulation:8080/payment/register 
   payment-db:
@@ -429,7 +429,7 @@ services:
     extends:
       file: order/docker-compose-base.yaml
       service: order
-    image: ghcr.io/misarch/order:main
+    image: misarch-go/orderatest
   order-db:
     extends:
       file: order/docker-compose-base.yaml
@@ -455,7 +455,7 @@ services:
     extends:
       file: simulation/docker-compose-base.yaml
       service: simulation
-    image: ghcr.io/misarch/simulation:main
+    image: misarch-go/simulationatest
     ports:
       - "8090:8080"
   simulation-rabbitmq:
@@ -483,7 +483,7 @@ services:
     extends:
       file: media/docker-compose-base.yaml
       service: media
-    image: ghcr.io/misarch/media:main
+    image: misarch-go/mediaatest
     environment:
       MINIO_ENDPOINT: http://media-minio:9000
   media-minio:
@@ -511,7 +511,7 @@ services:
     extends:
       file: invoice/docker-compose-base.yaml
       service: invoice
-    image: ghcr.io/misarch/invoice:main
+    image: misarch-go/invoiceatest
   invoice-db:
     extends:
       file: invoice/docker-compose-base.yaml

@@ -1,0 +1,264 @@
+extend schema @link(url: "https://specs.apollo.dev/federation/v2.5", import: ["@key", "@shareable", "@inaccessible"])
+
+"""
+Describes the fields that a foreign types can be ordered by.
+"""
+enum CommonOrderField {
+	"""
+	Orders by "id".
+	"""
+	ID
+}
+"""
+Specifies the order of foreign types.
+"""
+input CommonOrderInput {
+	"""
+	Order direction of wishlists.
+	"""
+	direction: OrderDirection
+	"""
+	Field that wishlists should be ordered by.
+	"""
+	field: CommonOrderField
+}
+input CreateWishlistInput {
+	"""
+	UUID of user owning the wishlist.
+	"""
+	userId: UUID!
+	"""
+	UUIDs of product variants in wishlist.
+	"""
+	productVariantIds: [UUID!]!
+	"""
+	Wishlist name.
+	"""
+	name: String!
+}
+scalar DateTime
+type Mutation {
+	"""
+	Adds a wishlist with a user_id, a list of product_variant_ids and a name.
+	
+	Formats UUIDs as hyphenated lowercase strings.
+	"""
+	createWishlist(
+		"""
+		CreateWishlistInput
+		"""
+		input: CreateWishlistInput!
+	): Wishlist!
+	"""
+	Updates name and/or product_variant_ids of a specific wishlist referenced with an UUID.
+	
+	Formats UUIDs as hyphenated lowercase strings.
+	"""
+	updateWishlist(
+		"""
+		UpdateWishlistInput
+		"""
+		input: UpdateWishlistInput!
+	): Wishlist!
+	"""
+	Deletes wishlist of UUID.
+	"""
+	deleteWishlist(
+		"""
+		UUID of wishlist to delete.
+		"""
+		id: UUID!
+	): Boolean!
+}
+"""
+GraphQL order direction.
+"""
+enum OrderDirection {
+	"""
+	Ascending order direction.
+	"""
+	ASC
+	"""
+	Descending order direction.
+	"""
+	DESC
+}
+"""
+Foreign type of a product variant.
+"""
+type ProductVariant @key(fields: "id", resolvable: false) {
+	"""
+	UUID of the product variant.
+	"""
+	id: UUID!
+}
+"""
+A connection of product variants.
+"""
+type ProductVariantConnection @shareable {
+	"""
+	The resulting entities.
+	"""
+	nodes: [ProductVariant!]!
+	"""
+	Whether this connection has a next page.
+	"""
+	hasNextPage: Boolean!
+	"""
+	The total amount of items in this connection.
+	"""
+	totalCount: Int!
+}
+type Query {
+	"""
+	Retrieves wishlist of specific UUID.
+	"""
+	wishlist(
+		"""
+		UUID of wishlist to retrieve.
+		"""
+		id: UUID!
+	): Wishlist!
+}
+scalar UUID
+input UpdateWishlistInput {
+	"""
+	UUID of wishlist to update.
+	"""
+	id: UUID!
+	"""
+	product variant UUIDs of wishlist to update
+	"""
+	productVariantIds: [UUID!]
+	"""
+	Wishlist name to update
+	"""
+	name: String
+}
+"""
+Type of a user owning wishlists.
+"""
+type User @key(fields: "id") {
+	"""
+	UUID of the user.
+	"""
+	id: UUID!
+	"""
+	Retrieves wishlists of user.
+	"""
+	wishlists(
+		"""
+		Describes that the `first` N wishlists should be retrieved.
+		"""
+		first: Int
+
+		"""
+		Describes how many wishlists should be skipped at the beginning.
+		"""
+		skip: Int
+
+		"""
+		Specifies the order in which wishlists are retrieved.
+		"""
+		orderBy: WishlistOrderInput
+	): WishlistConnection!
+}
+"""
+The wishlist of a user.
+"""
+type Wishlist @key(fields: "id") {
+	"""
+	Wishlist UUID.
+	"""
+	id: UUID!
+	"""
+	User.
+	"""
+	user: User!
+	"""
+	Name of wishlist.
+	"""
+	name: String!
+	"""
+	Timestamp when wishlist was created.
+	"""
+	createdAt: DateTime!
+	"""
+	Timestamp when wishlist was last updated.
+	"""
+	lastUpdatedAt: DateTime!
+	"""
+	Retrieves product variants.
+	"""
+	productVariants(
+		"""
+		Describes that the `first` N product variants should be retrieved.
+		"""
+		first: Int
+
+		"""
+		Describes how many product variants should be skipped at the beginning.
+		"""
+		skip: Int
+
+		"""
+		Specifies the order in which product variants are retrieved.
+		"""
+		orderBy: CommonOrderInput
+	): ProductVariantConnection!
+}
+"""
+A connection of wishlists.
+"""
+type WishlistConnection @shareable {
+	"""
+	The resulting entities.
+	"""
+	nodes: [Wishlist!]!
+	"""
+	Whether this connection has a next page.
+	"""
+	hasNextPage: Boolean!
+	"""
+	The total amount of items in this connection.
+	"""
+	totalCount: Int!
+}
+"""
+Describes the fields that a wishlist can be ordered by.
+"""
+enum WishlistOrderField {
+	"""
+	Orders by "id".
+	"""
+	ID
+	"""
+	Orders by "user_id".
+	"""
+	USER_ID
+	"""
+	Orders by "name".
+	"""
+	NAME
+	"""
+	Orders by "created_at".
+	"""
+	CREATED_AT
+	"""
+	Orders by "last_updated_at".
+	"""
+	LAST_UPDATED_AT
+}
+"""
+Specifies the order of wishlists.
+"""
+input WishlistOrderInput {
+	"""
+	Order direction of wishlists.
+	"""
+	direction: OrderDirection
+	"""
+	Field that wishlists should be ordered by.
+	"""
+	field: WishlistOrderField
+}

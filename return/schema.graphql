@@ -1,0 +1,258 @@
+extend schema @link(url: "https://specs.apollo.dev/federation/v2.5", import: ["@key", "@shareable", "@inaccessible"])
+
+"""
+An object with an ID.
+"""
+interface Node {
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+}
+type Mutation {
+	"""
+	Create a new return
+	"""
+	createReturn(
+		"""
+		Input for the createReturn mutation
+		"""
+		input: CreateReturnInput!
+	): Return!
+}
+"""
+An order.
+"""
+type Order implements Node @key(fields: "id", resolvable: true) {
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+}
+"""
+An order item.
+"""
+type OrderItem implements Node @key(fields: "id", resolvable: true) {
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+	"""
+	The return this order item was returned with.
+	"""
+	returnedWith: Return
+}
+"""
+A connection to a list of `OrderItem` values.
+"""
+type OrderItemConnection @shareable {
+	"""
+	Whether this connection has a next page
+	"""
+	hasNextPage: Boolean!
+	"""
+	The resulting items.
+	"""
+	nodes: [OrderItem!]!
+	"""
+	The total amount of items in this connection
+	"""
+	totalCount: Int!
+}
+type Query {
+	"""
+	Get a return by id
+	"""
+	return(
+		"""
+		The id of the return
+		"""
+		id: UUID!
+	): Return!
+	"""
+	Get all returns
+	"""
+	returns(
+		"""
+		Number of items to return
+		"""
+		first: Int
+
+		"""
+		Ordering
+		"""
+		orderBy: ReturnOrderInput
+
+		"""
+		Number of items to skip
+		"""
+		skip: Int
+	): ReturnConnection!
+}
+"""
+A return.
+"""
+type Return implements Node @key(fields: "id", resolvable: true) {
+	"""
+	The time the return was created.
+	"""
+	createdAt: DateTime!
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+	"""
+	The order this return is for.
+	"""
+	order: Order!
+	"""
+	The reason for the return.
+	"""
+	reason: String!
+	"""
+	The amount of money refunded.
+	"""
+	refundedAmount: Int!
+	"""
+	Get all order items returned with this return
+	"""
+	returnedItems(
+		"""
+		Number of items to return
+		"""
+		first: Int
+
+		"""
+		Ordering
+		"""
+		orderBy: CommonOrderInput
+
+		"""
+		Number of items to skip
+		"""
+		skip: Int
+	): OrderItemConnection!
+}
+"""
+A connection to a list of `Return` values.
+"""
+type ReturnConnection @shareable {
+	"""
+	Whether this connection has a next page
+	"""
+	hasNextPage: Boolean!
+	"""
+	The resulting items.
+	"""
+	nodes: [Return!]!
+	"""
+	The total amount of items in this connection
+	"""
+	totalCount: Int!
+}
+"""
+A user.
+"""
+type User implements Node @key(fields: "id", resolvable: true) {
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+	"""
+	Get all returns of this user
+	"""
+	returns(
+		"""
+		Number of items to return
+		"""
+		first: Int
+
+		"""
+		Ordering
+		"""
+		orderBy: ReturnOrderInput
+
+		"""
+		Number of items to skip
+		"""
+		skip: Int
+	): ReturnConnection!
+}
+"""
+Common order fields
+"""
+enum CommonOrderField {
+	"""
+	Order entities by their id
+	"""
+	ID
+}
+"""
+Order direction
+"""
+enum OrderDirection {
+	"""
+	Ascending order
+	"""
+	ASC
+	"""
+	Descending order
+	"""
+	DESC
+}
+"""
+Return order fields
+"""
+enum ReturnOrderField {
+	"""
+	Order returns by their id
+	"""
+	ID
+}
+"""
+A slightly refined version of RFC-3339 compliant DateTime Scalar
+"""
+scalar DateTime
+"""
+A universally unique identifier compliant UUID Scalar
+"""
+scalar UUID
+"""
+Discount order
+"""
+input CommonOrderInput {
+	"""
+	The direction to order by
+	"""
+	direction: OrderDirection
+	"""
+	The field to order by
+	"""
+	field: CommonOrderField
+}
+"""
+Input for the createReturn mutation
+"""
+input CreateReturnInput {
+	"""
+	The order items to return, must belong to the same order and must not be already returned.
+	"""
+	orderItemIds: [UUID!]!
+	"""
+	The reason for the return.
+	"""
+	reason: String!
+}
+"""
+Direction to sort returns in
+"""
+input ReturnOrderInput {
+	"""
+	The direction to order by
+	"""
+	direction: OrderDirection
+	"""
+	The field to order by
+	"""
+	field: ReturnOrderField
+}

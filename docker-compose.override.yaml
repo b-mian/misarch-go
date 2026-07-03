@@ -1,0 +1,40 @@
+services:
+  invoice-db:
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 15s
+      timeout: 30s
+      retries: 10
+      start_period: 60s
+
+  order-db:
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 15s
+      timeout: 30s
+      retries: 10
+      start_period: 60s
+
+  review-db:
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 15s
+      timeout: 30s
+      retries: 10
+      start_period: 60s
+
+  wishlist-db:
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 15s
+      timeout: 30s
+      retries: 10
+      start_period: 60s
+
+  shoppingcart-db:
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 15s
+      timeout: 30s
+      retries: 10
+      start_period: 60s

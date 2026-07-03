@@ -1,0 +1,311 @@
+extend schema @link(url: "https://specs.apollo.dev/federation/v2.5", import: ["@key", "@shareable", "@inaccessible"])
+
+"""
+An object with an ID.
+"""
+interface Node {
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+}
+type Mutation {
+	"""
+	Creates a new TaxRate
+	"""
+	createTaxRate(
+		"""
+		Input for the createTaxRate mutation
+		"""
+		input: CreateTaxRateInput!
+	): TaxRate!
+	"""
+	Creates a new TaxRateVersion
+	"""
+	createTaxRateVersion(
+		"""
+		Input for the createTaxRateVersion mutation
+		"""
+		input: CreateTaxRateVersionInput!
+	): TaxRateVersion!
+	"""
+	Updates a TaxRate
+	"""
+	updateTaxRate(
+		"""
+		Input for the updateTaxRate mutation
+		"""
+		input: UpdateTaxRateInput!
+	): TaxRate!
+}
+type Query {
+	"""
+	Get a TaxRate by id
+	"""
+	taxRate(
+		"""
+		The id of the TaxRate
+		"""
+		id: UUID!
+	): TaxRate!
+	"""
+	Get a TaxRateVersion by id
+	"""
+	taxRateVersion(
+		"""
+		The id of the TaxRateVersion
+		"""
+		id: UUID!
+	): TaxRateVersion!
+	"""
+	Get all TaxRates
+	"""
+	taxRates(
+		"""
+		Number of items to return
+		"""
+		first: Int
+
+		"""
+		Ordering
+		"""
+		orderBy: TaxRateOrderInput
+
+		"""
+		Number of items to skip
+		"""
+		skip: Int
+	): TaxRateConnection!
+}
+"""
+A TaxRate.
+"""
+type TaxRate implements Node @key(fields: "id", resolvable: true) {
+	"""
+	The current version of the TaxRate.
+	"""
+	currentVersion: TaxRateVersion!
+	"""
+	The description of the TaxRate
+	"""
+	description: String!
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+	"""
+	The name of the TaxRate
+	"""
+	name: String!
+	"""
+	Get all associated versions
+	"""
+	versions(
+		"""
+		Number of items to return
+		"""
+		first: Int
+
+		"""
+		Ordering
+		"""
+		orderBy: TaxRateVersionOrderInput
+
+		"""
+		Number of items to skip
+		"""
+		skip: Int
+	): TaxRateVersionConnection!
+}
+"""
+A connection to a list of `TaxRate` values.
+"""
+type TaxRateConnection @shareable {
+	"""
+	Whether this connection has a next page
+	"""
+	hasNextPage: Boolean!
+	"""
+	The resulting items.
+	"""
+	nodes: [TaxRate!]!
+	"""
+	The total amount of items in this connection
+	"""
+	totalCount: Int!
+}
+"""
+A TaxRateVersion.
+"""
+type TaxRateVersion implements Node @key(fields: "id", resolvable: true) {
+	"""
+	Time stamp when the TaxRateVersion was created
+	"""
+	createdAt: DateTime!
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+	"""
+	The rate of the TaxRateVersion
+	"""
+	rate: Float!
+	"""
+	The associated TaxRate.
+	"""
+	taxRate: TaxRate!
+	"""
+	Version of the TaxRateVersion
+	"""
+	version: Int!
+}
+"""
+A connection to a list of `TaxRateVersion` values.
+"""
+type TaxRateVersionConnection @shareable {
+	"""
+	Whether this connection has a next page
+	"""
+	hasNextPage: Boolean!
+	"""
+	The resulting items.
+	"""
+	nodes: [TaxRateVersion!]!
+	"""
+	The total amount of items in this connection
+	"""
+	totalCount: Int!
+}
+"""
+Order direction
+"""
+enum OrderDirection {
+	"""
+	Ascending order
+	"""
+	ASC
+	"""
+	Descending order
+	"""
+	DESC
+}
+"""
+TaxRate order fields
+"""
+enum TaxRateOrderField {
+	"""
+	Order TaxRates by their id
+	"""
+	ID
+	"""
+	Order TaxRates by their name
+	"""
+	NAME
+}
+"""
+TaxRateVersion order fields
+"""
+enum TaxRateVersionOrderField {
+	"""
+	Order TaxRateVersions by their creation date
+	"""
+	CREATED_AT
+	"""
+	Order TaxRateVersions by their id
+	"""
+	ID
+	"""
+	Order TaxRateVersions by their version
+	"""
+	VERSION
+}
+"""
+A slightly refined version of RFC-3339 compliant DateTime Scalar
+"""
+scalar DateTime
+"""
+A universally unique identifier compliant UUID Scalar
+"""
+scalar UUID
+"""
+Input for the createTaxRate mutation
+"""
+input CreateTaxRateInput {
+	"""
+	The description of the created TaxRate
+	"""
+	description: String!
+	"""
+	The initial version of the created TaxRate
+	"""
+	initialVersion: TaxRateVersionInput!
+	"""
+	The name of the created TaxRate
+	"""
+	name: String!
+}
+"""
+Input for the createTaxRateVersion mutation
+"""
+input CreateTaxRateVersionInput {
+	"""
+	The rate of the created TaxRateVersion
+	"""
+	rate: Float!
+	"""
+	The id of the TaxRate the created TaxRateVersion belongs to
+	"""
+	taxRateId: UUID!
+}
+"""
+TaxRate order
+"""
+input TaxRateOrderInput {
+	"""
+	The direction to order by
+	"""
+	direction: OrderDirection
+	"""
+	The field to order by
+	"""
+	field: TaxRateOrderField
+}
+"""
+Input for creating a TaxRateVersion
+"""
+input TaxRateVersionInput {
+	"""
+	The rate of the created TaxRateVersion
+	"""
+	rate: Float!
+}
+"""
+TaxRateVersion order
+"""
+input TaxRateVersionOrderInput {
+	"""
+	The direction to order by
+	"""
+	direction: OrderDirection
+	"""
+	The field to order by
+	"""
+	field: TaxRateVersionOrderField
+}
+"""
+Input for the updateTaxRate mutation
+"""
+input UpdateTaxRateInput {
+	"""
+	If provided, the new description of the TaxRate
+	"""
+	description: String
+	"""
+	The id of the TaxRate to update
+	"""
+	id: UUID!
+	"""
+	If provided, the new name of the TaxRate
+	"""
+	name: String
+}

@@ -1,0 +1,88 @@
+# gqlgen config for the discount service. Codegen: `go tool gqlgen generate` from
+# this directory (schema.graphql is produced from the canonical MiSArch
+# subgraph SDL by tools/sdlprep).
+schema:
+  - schema.graphql
+
+exec:
+  filename: graph/generated.go
+  package: graph
+
+model:
+  filename: graph/models_gen.go
+  package: graph
+
+resolver:
+  layout: follow-schema
+  dir: graph
+  package: graph
+  filename_template: "{name}.resolvers.go"
+
+federation:
+  filename: graph/federation.go
+  package: graph
+  version: 2
+
+omit_slice_element_pointers: true
+omit_getters: true
+# Nullable input fields become graphql.Omittable[*T] so update mutations can tell
+# "field absent" (leave unchanged) from "field explicitly null" (clear it) — the
+# graphql-kotlin OptionalInput tri-state the original relies on for
+# updateDiscount.maxUsagesPerUser/minOrderAmount and updateCoupon.maxUsages.
+nullable_input_omittable: true
+
+models:
+  UUID:
+    model: misarch/pkg/scalars.UUID
+  DateTime:
+    model: misarch/pkg/scalars.DateTime
+  # Relationship fields (object/entity/connection returns) are resolved lazily
+  # via field resolvers, never eagerly embedded, so unrequested edges execute no
+  # queries and cyclic references terminate. extraFields carry the internal FKs /
+  # raw values the resolvers need; they are not part of the public schema.
+  Discount:
+    fields:
+      discountAppliesToCategories: { resolver: true }
+      discountAppliesToProducts: { resolver: true }
+      discountAppliesToProductVariants: { resolver: true }
+      discountRequiresCoupon: { resolver: true }
+      discountUsages: { resolver: true }
+  Coupon:
+    fields:
+      # usages/maxUsages are employee-gated in the original (method resolvers
+      # calling checkIsEmployee), so they must be field resolvers here too. The
+      # raw values ride along as extraFields.
+      usages: { resolver: true }
+      maxUsages: { resolver: true }
+      discount: { resolver: true }
+      users: { resolver: true }
+    extraFields:
+      UsagesValue:
+        type: int
+      MaxUsagesValue:
+        type: "*int"
+      DiscountID:
+        type: github.com/google/uuid.UUID
+  DiscountUsage:
+    fields:
+      discount: { resolver: true }
+      user: { resolver: true }
+    extraFields:
+      DiscountID:
+        type: github.com/google/uuid.UUID
+      UserID:
+        type: github.com/google/uuid.UUID
+  Category:
+    fields:
+      discounts: { resolver: true }
+  Product:
+    fields:
+      discounts: { resolver: true }
+  ProductVariant:
+    fields:
+      discounts: { resolver: true }
+      applicableDiscounts: { resolver: true }
+  User:
+    fields:
+      coupons: { resolver: true }
+      discountUsages: { resolver: true }

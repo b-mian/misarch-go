@@ -1,0 +1,54 @@
+# gqlgen config for the user service. Codegen: `go tool gqlgen generate` from
+# this directory (schema.graphql is produced from the canonical MiSArch
+# subgraph SDL by tools/sdlprep).
+schema:
+  - schema.graphql
+
+exec:
+  filename: graph/generated.go
+  package: graph
+
+model:
+  filename: graph/models_gen.go
+  package: graph
+
+resolver:
+  layout: follow-schema
+  dir: graph
+  package: graph
+  filename_template: "{name}.resolvers.go"
+
+federation:
+  filename: graph/federation.go
+  package: graph
+  version: 2
+
+omit_slice_element_pointers: true
+omit_getters: true
+
+# UpdateUserInput.birthday/gender are tri-state in the original (OptionalInput):
+# omitted = leave unchanged, explicit null = clear. Making nullable input fields
+# graphql.Omittable[*T] lets the updateUser resolver tell those two cases apart
+# (.IsSet() distinguishes absent from present-null). firstName/lastName use the
+# same wrapper but are treated as plain-nullable (only a set, non-nil value
+# applies), matching the Kotlin `String?` semantics.
+nullable_input_omittable: true
+
+models:
+  UUID:
+    model: misarch/pkg/scalars.UUID
+  DateTime:
+    model: misarch/pkg/scalars.DateTime
+  Date:
+    model: misarch/pkg/scalars.Date
+  # birthday/gender/dateJoined carry per-field authorization in the original
+  # (each User method calls checkIsSameUserOrEmployee): only the user itself or
+  # an employee/admin may read them. That check is invisible in the SDL, so it
+  # must be reproduced as gqlgen field resolvers. The scalar values stay on the
+  # User struct (populated by the mapper); the resolvers run the auth check and
+  # return them.
+  User:
+    fields:
+      birthday: { resolver: true }
+      gender: { resolver: true }
+      dateJoined: { resolver: true }

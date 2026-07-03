@@ -1,0 +1,220 @@
+extend schema @link(url: "https://specs.apollo.dev/federation/v2.5", import: ["@key", "@shareable", "@inaccessible"])
+
+"""
+Describes the fields that a foreign types can be ordered by.
+"""
+enum CommonOrderField {
+	"""
+	Orders by "id".
+	"""
+	ID
+}
+"""
+Specifies the order of foreign types.
+"""
+input CommonOrderInput {
+	"""
+	Order direction of shoppingcarts.
+	"""
+	direction: OrderDirection
+	"""
+	Field that shoppingcarts should be ordered by.
+	"""
+	field: CommonOrderField
+}
+input CreateShoppingCartItemInput {
+	"""
+	UUID of user owning the shopping cart.
+	"""
+	id: UUID!
+	"""
+	shopping cart item in shopping cart to update
+	"""
+	shoppingCartItem: ShoppingCartItemInput!
+}
+scalar DateTime
+type Mutation {
+	"""
+	Updates shopping cart items of a specific shopping cart referenced with a UUID.
+	
+	Formats UUIDs as hyphenated lowercase strings.
+	"""
+	updateShoppingcart(
+		"""
+		UpdateShoppingCartInput
+		"""
+		input: UpdateShoppingCartInput!
+	): ShoppingCart!
+	"""
+	Adds shopping cart item to a shopping cart.
+	
+	Queries for existing item, otherwise adds new shoppingcart item.
+	"""
+	createShoppingcartItem(
+		"""
+		CreateShoppingCartItemInput
+		"""
+		input: CreateShoppingCartItemInput!
+	): ShoppingCartItem!
+	"""
+	Updates a single shopping cart item.
+	"""
+	updateShoppingcartItem(
+		"""
+		UpdateShoppingCartItemInput
+		"""
+		input: UpdateShoppingCartItemInput!
+	): ShoppingCartItem!
+	"""
+	Deletes shoppingcart item of UUID.
+	"""
+	deleteShoppingcartItem(
+		"""
+		UUID of shoppingcart item to delete.
+		"""
+		id: UUID!
+	): Boolean!
+}
+"""
+GraphQL order direction.
+"""
+enum OrderDirection {
+	"""
+	Ascending order direction.
+	"""
+	ASC
+	"""
+	Descending order direction.
+	"""
+	DESC
+}
+"""
+Foreign type of a product variant.
+"""
+type ProductVariant @key(fields: "id", resolvable: false) {
+	"""
+	UUID of the product variant.
+	"""
+	id: UUID!
+}
+type Query {
+	"""
+	Retrieves shopping cart item of specific UUID.
+	"""
+	shoppingcartItem(
+		"""
+		UUID of shoppingcart to retrieve.
+		"""
+		id: UUID!
+	): ShoppingCartItem!
+}
+"""
+The shopping cart of a user.
+"""
+type ShoppingCart @shareable {
+	"""
+	Timestamp when shopping cart was last updated.
+	"""
+	lastUpdatedAt: DateTime!
+	"""
+	Retrieves shoppingcart items in shopping cart.
+	"""
+	shoppingcartItems(
+		"""
+		Describes that the `first` N shoppingcarts should be retrieved.
+		"""
+		first: Int
+
+		"""
+		Describes how many shoppingcarts should be skipped at the beginning.
+		"""
+		skip: Int
+
+		"""
+		Specifies the order in which shoppingcarts are retrieved.
+		"""
+		orderBy: CommonOrderInput
+	): ShoppingCartItemConnection!
+}
+"""
+Shopping cart item in a shopping cart of a user.
+"""
+type ShoppingCartItem @key(fields: "id") {
+	"""
+	Shopping cart item UUID.
+	"""
+	id: UUID!
+	"""
+	Count of items in basket.
+	"""
+	count: Int!
+	"""
+	Timestamp when shopping cart item was added.
+	"""
+	addedAt: DateTime!
+	"""
+	Product variant of shopping cart item.
+	"""
+	productVariant: ProductVariant!
+}
+"""
+A connection of shopping cart items.
+"""
+type ShoppingCartItemConnection @shareable {
+	"""
+	The resulting entities.
+	"""
+	nodes: [ShoppingCartItem!]!
+	"""
+	Whether this connection has a next page.
+	"""
+	hasNextPage: Boolean!
+	"""
+	The total amount of items in this connection.
+	"""
+	totalCount: Int!
+}
+input ShoppingCartItemInput {
+	"""
+	Count of shopping cart items in cart.
+	"""
+	count: Int!
+	"""
+	UUID of product variant.
+	"""
+	productVariantId: UUID!
+}
+scalar UUID
+input UpdateShoppingCartInput {
+	"""
+	UUID of user owning shopping cart.
+	"""
+	id: UUID!
+	"""
+	Shopping cart items of shopping cart to update.
+	"""
+	shoppingCartItems: [ShoppingCartItemInput!]
+}
+input UpdateShoppingCartItemInput {
+	"""
+	UUID of shoppingcart item to update.
+	"""
+	id: UUID!
+	"""
+	Count of shopping cart items in cart.
+	"""
+	count: Int!
+}
+"""
+Type of a user owning shoppingcarts.
+"""
+type User @key(fields: "id") {
+	"""
+	UUID of the user.
+	"""
+	id: UUID!
+	"""
+	Shopping cart of the user.
+	"""
+	shoppingcart: ShoppingCart!
+}

@@ -1,0 +1,50 @@
+services:
+  catalog-db:
+    image: postgres:16
+    restart: unless-stopped
+    volumes:
+      - catalog-db-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=catalog
+    healthcheck:
+      test: pg_isready -U postgres -d catalog -h localhost -p 5432
+      interval: 10s
+      timeout: 5s
+      retries: 3
+  catalog:
+    restart: unless-stopped
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        SERVICE: catalog
+    healthcheck:
+      test: ["CMD", "/service", "healthcheck"]
+      interval: 1s
+      timeout: 10s
+      retries: 20
+      start_period: 3s
+    depends_on:
+      catalog-db:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@catalog-db:5432/catalog
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+      - OTEL_METRIC_EXPORT_INTERVAL=5000
+      - OTEL_SERVICE_NAME=catalog
+  catalog-dapr:
+    image: "daprio/daprd:edge"
+    command: [
+      "./daprd",
+      "--app-id", "catalog",
+      "--app-port", "${EXPERIMENT_CONFIG_SIDECAR_PORT:-8080}",
+      "--dapr-http-port", "3500",
+      "-placement-host-address", "placement:50006",
+      "--config", "/config.yaml",
+      "--resources-path", "/components"
+    ]
+    network_mode: "service:catalog"
+volumes:
+  catalog-db-data:

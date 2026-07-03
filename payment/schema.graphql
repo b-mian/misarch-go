@@ -1,0 +1,383 @@
+extend schema @link(url: "https://specs.apollo.dev/federation/v2.5", import: ["@key", "@shareable", "@inaccessible"])
+
+"""
+Foreign type User
+"""
+type User @key(fields: "id") {
+	"""
+	The uuid identifier of the user
+	"""
+	id: UUID!
+	"""
+	A connection for an users payment informations.
+	"""
+	paymentInformations(
+		"""
+		Number of items to skip
+		"""
+		skip: Int = 0
+
+		"""
+		Number of items to return
+		"""
+		first: Int = 2147483647
+
+		"""
+		Ordering
+		"""
+		orderBy: PaymentInformationOrder
+
+		"""
+		Filtering
+		"""
+		filter: PaymentInformationFilter
+	): PaymentInformationConnection
+}
+"""
+A universally unique identifier compliant UUID Scalar
+"""
+scalar UUID
+"""
+Ordering options for payment informations
+"""
+input PaymentInformationOrder {
+	"""
+	The field to order by
+	"""
+	field: PaymentInformationOrderField
+	"""
+	The direction to order by
+	"""
+	direction: OrderDirection
+}
+"""
+The field to order payment informations by
+"""
+enum PaymentInformationOrderField {
+	"""
+	Order payment informations by their id
+	"""
+	ID
+}
+"""
+The direction to order a list of items by
+"""
+enum OrderDirection {
+	"""
+	Ascending Order
+	"""
+	ASC
+	"""
+	Decending Order
+	"""
+	DESC
+}
+"""
+Filtering options for payment informations
+"""
+input PaymentInformationFilter {
+	"""
+	Connected user id
+	"""
+	user: UUID
+	"""
+	Linked payment method
+	"""
+	paymentMethod: PaymentMethod
+}
+"""
+The supported payment methods
+"""
+enum PaymentMethod {
+	"""
+	The user pays after ordering the product
+	"""
+	INVOICE
+	"""
+	The user pays before the product is shipped
+	"""
+	PREPAYMENT
+	"""
+	The amount is charged to the users credit card
+	"""
+	CREDIT_CARD
+}
+"""
+A stored payment information of an user
+"""
+type PaymentInformation @key(fields: "id") {
+	"""
+	The uuid identifier of the payment information
+	"""
+	id: UUID!
+	"""
+	The corresponding payment method
+	"""
+	paymentMethod: PaymentMethod!
+	"""
+	The details for the User to identify the payment method
+	"""
+	publicMethodDetails: JSONObject
+	"""
+	The user who owns the payment information
+	"""
+	user: User!
+	"""
+	A connection for an users payments made with a payment information.
+	"""
+	payments(
+		"""
+		Number of items to skip
+		"""
+		skip: Int = 0
+
+		"""
+		Number of items to return
+		"""
+		first: Int = 2147483647
+
+		"""
+		Ordering
+		"""
+		orderBy: PaymentOrder
+
+		"""
+		Filtering
+		"""
+		filter: PaymentFilter
+	): PaymentConnection
+}
+"""
+The `JSONObject` scalar type represents JSON objects as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSONObject
+"""
+Ordering options for payments
+"""
+input PaymentOrder {
+	"""
+	The field to order by
+	"""
+	field: PaymentOrderField
+	"""
+	The direction to order by
+	"""
+	direction: OrderDirection
+}
+"""
+The field to order Payments by
+"""
+enum PaymentOrderField {
+	"""
+	Order Payments by their ID
+	"""
+	ID
+}
+"""
+Filtering options for payments
+"""
+input PaymentFilter {
+	"""
+	Current payment status
+	"""
+	status: PaymentStatus
+	"""
+	Payment Information ID
+	"""
+	paymentInformationId: String
+	"""
+	Payment method
+	"""
+	paymentMethod: PaymentMethod
+	"""
+	Timebox start for payment creation
+	"""
+	from: DateTime
+	"""
+	Timebox end for payment creation
+	"""
+	to: DateTime
+}
+"""
+The status of an payment of an invoice or return
+"""
+enum PaymentStatus {
+	"""
+	The payment was created but not yet processed
+	"""
+	OPEN
+	"""
+	The payment is currently being processed
+	"""
+	PENDING
+	"""
+	The payment was successfully processed and the amount was transfered
+	"""
+	SUCCEEDED
+	"""
+	The payment processing failed indefinetely
+	"""
+	FAILED
+	"""
+	The payment was sold to external inkasso service
+	"""
+	INKASSO
+}
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+"""
+A payment of an invoice or return
+"""
+type Payment @key(fields: "id") {
+	"""
+	The uuid identifier of the payment
+	"""
+	id: UUID!
+	"""
+	Payment Amount in the smallest currency unit (e.g. cents)
+	"""
+	totalAmount: Float!
+	"""
+	Status of the payment
+	"""
+	status: PaymentStatus!
+	"""
+	Used Payment Information
+	"""
+	paymentInformation: PaymentInformation!
+	"""
+	Date of the payment
+	"""
+	payedAt: DateTime
+	"""
+	Number of retries for the payment process
+	"""
+	numberOfRetries: Float!
+}
+"""
+A connection of payments
+"""
+type PaymentConnection @shareable {
+	"""
+	The resulting items
+	"""
+	nodes: [Payment!]
+	"""
+	The total amount of items in this connection
+	"""
+	totalCount: Int!
+	"""
+	Whether this connection has a next page
+	"""
+	hasNextPage: Boolean!
+}
+"""
+A connection of payment informations
+"""
+type PaymentInformationConnection @shareable {
+	"""
+	The resulting items
+	"""
+	nodes: [PaymentInformation!]
+	"""
+	The total amount of items in this connection
+	"""
+	totalCount: Int!
+	"""
+	Whether this connection has a next page
+	"""
+	hasNextPage: Boolean!
+}
+type Query {
+	"""
+	 Retrieves all payment informations matching the filter
+	"""
+	paymentInformations(
+		"""
+		Number of items to skip
+		"""
+		skip: Int = 0
+
+		"""
+		Number of items to return
+		"""
+		first: Int = 2147483647
+
+		"""
+		Ordering
+		"""
+		orderBy: PaymentInformationOrder
+
+		"""
+		Filtering
+		"""
+		filter: PaymentInformationFilter
+	): PaymentInformationConnection!
+	"""
+	Retrieves all payments
+	"""
+	payments(
+		"""
+		Number of items to skip
+		"""
+		skip: Int = 0
+
+		"""
+		Number of items to return
+		"""
+		first: Int = 2147483647
+
+		"""
+		Ordering
+		"""
+		orderBy: PaymentOrder
+
+		"""
+		Filtering
+		"""
+		filter: PaymentFilter
+	): PaymentConnection!
+}
+type Mutation {
+	"""
+	Adds a credit card to the users stored payment informations
+	"""
+	createCreditCardPaymentInformation(input: CreateCreditCardInformationInput!): PaymentInformation!
+	"""
+	Deletes a payment information by id
+	"""
+	deletePaymentInformation(
+		"""
+		UUID of payment information to delete
+		"""
+		id: UUID!
+	): PaymentInformation!
+	"""
+	Deletes a payment by id
+	"""
+	deletePayment(
+		"""
+		UUID of payment to delete
+		"""
+		id: UUID!
+	): Payment!
+}
+"""
+All required informations to save an credit card
+"""
+input CreateCreditCardInformationInput {
+	"""
+	The card holders name
+	"""
+	cardHolder: String!
+	"""
+	The credit cards number
+	"""
+	cardNumber: String!
+	"""
+	The credit cards expiration date
+	"""
+	expirationDate: String!
+}

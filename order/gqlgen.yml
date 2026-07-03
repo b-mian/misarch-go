@@ -1,0 +1,76 @@
+# gqlgen config for the order service. Codegen: `go tool gqlgen generate` from
+# this directory (schema.graphql is produced from the canonical MiSArch
+# subgraph SDL by tools/sdlprep).
+schema:
+  - schema.graphql
+
+exec:
+  filename: graph/generated.go
+  package: graph
+
+model:
+  filename: graph/models_gen.go
+  package: graph
+
+resolver:
+  layout: follow-schema
+  dir: graph
+  package: graph
+  filename_template: "{name}.resolvers.go"
+
+federation:
+  filename: graph/federation.go
+  package: graph
+  version: 2
+
+omit_slice_element_pointers: true
+omit_getters: true
+
+models:
+  UUID:
+    model: misarch/pkg/scalars.UUID
+  DateTime:
+    model: misarch/pkg/scalars.DateTime
+  # Relationship fields (any field returning another object type or a
+  # connection) are resolved lazily via field resolvers so unrequested edges
+  # execute nothing and cyclic references terminate. The extraFields carry the
+  # internal data the resolvers need (foreign-type ids, embedded slices) — they
+  # are not part of the public schema. All of these are resolved in-memory from
+  # the parent Mongo document (no DB call) EXCEPT User.orders, which queries the
+  # orders collection.
+  Order:
+    fields:
+      user: { resolver: true }
+      invoiceAddress: { resolver: true }
+      orderItems: { resolver: true }
+    extraFields:
+      UserID:
+        type: github.com/google/uuid.UUID
+      InvoiceAddressID:
+        type: github.com/google/uuid.UUID
+      InternalOrderItems:
+        type: "[]*misarch/order/graph.OrderItem"
+  OrderItem:
+    fields:
+      productVariant: { resolver: true }
+      productVariantVersion: { resolver: true }
+      taxRateVersion: { resolver: true }
+      shoppingCartItem: { resolver: true }
+      shipmentMethod: { resolver: true }
+      discounts: { resolver: true }
+    extraFields:
+      ProductVariantID:
+        type: github.com/google/uuid.UUID
+      ProductVariantVersionID:
+        type: github.com/google/uuid.UUID
+      TaxRateVersionID:
+        type: github.com/google/uuid.UUID
+      ShoppingCartItemID:
+        type: github.com/google/uuid.UUID
+      ShipmentMethodID:
+        type: github.com/google/uuid.UUID
+      InternalDiscounts:
+        type: "[]github.com/google/uuid.UUID"
+  User:
+    fields:
+      orders: { resolver: true }

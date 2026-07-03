@@ -1,0 +1,61 @@
+# gqlgen config for the review service. Codegen: `go tool gqlgen generate` from
+# this directory (schema.graphql is produced from the canonical MiSArch
+# subgraph SDL by tools/sdlprep).
+schema:
+  - schema.graphql
+
+exec:
+  filename: graph/generated.go
+  package: graph
+
+model:
+  filename: graph/models_gen.go
+  package: graph
+
+resolver:
+  layout: follow-schema
+  dir: graph
+  package: graph
+  filename_template: "{name}.resolvers.go"
+
+federation:
+  filename: graph/federation.go
+  package: graph
+  version: 2
+
+omit_slice_element_pointers: true
+omit_getters: true
+
+models:
+  UUID:
+    model: misarch/pkg/scalars.UUID
+  DateTime:
+    model: misarch/pkg/scalars.DateTime
+  # Relationship fields are resolved lazily via field resolvers (never eagerly
+  # embedded in the parent struct) so unrequested edges execute no queries and
+  # cyclic references terminate. The extraFields carry the internal FKs those
+  # resolvers need; they are not part of the public schema (e.g. the embedded
+  # product_id used only for the Product.reviews join, which is @graphql(skip)
+  # in the original Rust and therefore not a GraphQL field).
+  Review:
+    fields:
+      user: { resolver: true }
+      productVariant: { resolver: true }
+    extraFields:
+      UserID:
+        type: github.com/google/uuid.UUID
+      ProductVariantID:
+        type: github.com/google/uuid.UUID
+      ProductID:
+        type: github.com/google/uuid.UUID
+  User:
+    fields:
+      reviews: { resolver: true }
+  Product:
+    fields:
+      reviews: { resolver: true }
+      averageRating: { resolver: true }
+  ProductVariant:
+    fields:
+      reviews: { resolver: true }
+      averageRating: { resolver: true }

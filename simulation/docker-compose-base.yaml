@@ -1,0 +1,47 @@
+services:
+  simulation:
+    restart: unless-stopped
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        SERVICE: simulation
+    healthcheck:
+      test: ["CMD", "/service", "healthcheck"]
+      interval: 1s
+      timeout: 10s
+      retries: 20
+      start_period: 3s
+    depends_on:
+      - simulation-rabbitmq
+    environment:
+      - RABBITMQ_URL=amqp://guest:guest@simulation-rabbitmq:5672
+      - PAYMENT_URL=http://payment:8080
+      - SHIPMENT_URL=http://shipment:8080
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+      - OTEL_METRIC_EXPORT_INTERVAL=5000
+      - OTEL_SERVICE_NAME=simulation
+  simulation-rabbitmq:
+    image: "rabbitmq:3-management"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+  simulation-dapr:
+    image: "daprio/daprd:edge"
+    network_mode: "service:simulation"
+    command:
+      [
+        "./daprd",
+        "--app-id",
+        "simulation",
+        "--app-port",
+        "${EXPERIMENT_CONFIG_SIDECAR_PORT:-8080}",
+        "--dapr-http-port",
+        "3500",
+        "-placement-host-address",
+        "placement:50006",
+        "--config",
+        "/config.yaml",
+        "--resources-path",
+        "/components",
+      ]

@@ -1,0 +1,382 @@
+extend schema @link(url: "https://specs.apollo.dev/federation/v2.5", import: ["@key", "@shareable", "@inaccessible"])
+
+"""
+An address.
+"""
+interface Address implements Node {
+	"""
+	The city part of the address
+	"""
+	city: String!
+	"""
+	The company name part of the address
+	"""
+	companyName: String
+	"""
+	The country part of the address
+	"""
+	country: String!
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+	"""
+	The name of the address
+	"""
+	name: Name
+	"""
+	The postal code part of the address
+	"""
+	postalCode: String!
+	"""
+	The first part of the street part of the address
+	"""
+	street1: String!
+	"""
+	The second part of the street part of the address
+	"""
+	street2: String!
+}
+"""
+An object with an ID.
+"""
+interface Node {
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+}
+type Mutation {
+	"""
+	Archive a user address
+	"""
+	archiveUserAddress(
+		"""
+		Input for the archiveUserAddress mutation
+		"""
+		input: ArchiveUserAddressInput!
+	): UserAddress!
+	"""
+	Create a new user address
+	"""
+	createUserAddress(
+		"""
+		Input for the createUserAddress mutation
+		"""
+		input: CreateUserAddressInput!
+	): UserAddress!
+	"""
+	Create a new vendor address
+	"""
+	createVendorAddress(
+		"""
+		Input for the createVendorAddress mutation
+		"""
+		input: CreateVendorAddressInput!
+	): VendorAddress!
+}
+"""
+A name consisting of a firstName and lastName.
+"""
+type Name @shareable {
+	"""
+	The first name of the user
+	"""
+	firstName: String!
+	"""
+	The last name of the user
+	"""
+	lastName: String!
+}
+type Query {
+	"""
+	Get a address by id
+	"""
+	address(
+		"""
+		The id of the address
+		"""
+		id: UUID!
+	): Address!
+	"""
+	Get the current vendor address
+	"""
+	vendorAddress: VendorAddress
+}
+"""
+A user.
+"""
+type User implements Node @key(fields: "id", resolvable: true) {
+	"""
+	Get all address the user received
+	"""
+	addresses(
+		"""
+		Filtering
+		"""
+		filter: UserAddressFilterInput
+
+		"""
+		Number of items to return
+		"""
+		first: Int
+
+		"""
+		Ordering
+		"""
+		orderBy: UserAddressOrderInput
+
+		"""
+		Number of items to skip
+		"""
+		skip: Int
+	): UserAddressConnection!
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+}
+"""
+A address associated with a user.
+"""
+type UserAddress implements Address & Node @key(fields: "id", resolvable: true) {
+	"""
+	If this address is archived, the datetime it was archived.
+	"""
+	archivedAt: DateTime
+	"""
+	The city part of the address
+	"""
+	city: String!
+	"""
+	The company name part of the address
+	"""
+	companyName: String
+	"""
+	The country part of the address
+	"""
+	country: String!
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+	"""
+	If true, this address is archived and can no longer be used.
+	"""
+	isArchived: Boolean!
+	"""
+	The name of the address
+	"""
+	name: Name
+	"""
+	The postal code part of the address
+	"""
+	postalCode: String!
+	"""
+	The first part of the street part of the address
+	"""
+	street1: String!
+	"""
+	The second part of the street part of the address
+	"""
+	street2: String!
+	"""
+	The user this address belongs to.
+	"""
+	user: User!
+}
+"""
+A connection to a list of `Address` values.
+"""
+type UserAddressConnection @shareable {
+	"""
+	Whether this connection has a next page
+	"""
+	hasNextPage: Boolean!
+	"""
+	The resulting items.
+	"""
+	nodes: [UserAddress!]!
+	"""
+	The total amount of items in this connection
+	"""
+	totalCount: Int!
+}
+"""
+An address associated with the vendor.
+"""
+type VendorAddress implements Address & Node @key(fields: "id", resolvable: true) {
+	"""
+	The city part of the address
+	"""
+	city: String!
+	"""
+	The company name part of the address
+	"""
+	companyName: String
+	"""
+	The country part of the address
+	"""
+	country: String!
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+	"""
+	The name of the address
+	"""
+	name: Name
+	"""
+	The postal code part of the address
+	"""
+	postalCode: String!
+	"""
+	The first part of the street part of the address
+	"""
+	street1: String!
+	"""
+	The second part of the street part of the address
+	"""
+	street2: String!
+}
+"""
+Order direction
+"""
+enum OrderDirection {
+	"""
+	Ascending order
+	"""
+	ASC
+	"""
+	Descending order
+	"""
+	DESC
+}
+"""
+User address order fields
+"""
+enum UserAddressOrderField {
+	"""
+	Order addresss by their id
+	"""
+	ID
+}
+"""
+A slightly refined version of RFC-3339 compliant DateTime Scalar
+"""
+scalar DateTime
+"""
+A universally unique identifier compliant UUID Scalar
+"""
+scalar UUID
+"""
+Input for the archiveUserAddress mutation.
+"""
+input ArchiveUserAddressInput {
+	"""
+	The id of the user address to archive.
+	"""
+	id: UUID!
+}
+"""
+Input for the createUserAddress mutation.
+"""
+input CreateUserAddressInput {
+	"""
+	The city part of the address to create
+	"""
+	city: String!
+	"""
+	The company name part of the address to create
+	"""
+	companyName: String
+	"""
+	The country part of the address to create
+	"""
+	country: String!
+	"""
+	The name of the address to create
+	"""
+	name: NameInput
+	"""
+	The postal code part of the address to create
+	"""
+	postalCode: String!
+	"""
+	The first part of the street part of the address to create
+	"""
+	street1: String!
+	"""
+	The second part of the street part of the address to create
+	"""
+	street2: String!
+	"""
+	The id of the user to create the address for.
+	"""
+	userId: UUID!
+}
+"""
+Input for the createVendorAddress mutation.
+"""
+input CreateVendorAddressInput {
+	"""
+	The city part of the address to create
+	"""
+	city: String!
+	"""
+	The company name part of the address to create
+	"""
+	companyName: String
+	"""
+	The country part of the address to create
+	"""
+	country: String!
+	"""
+	The name of the address to create
+	"""
+	name: NameInput
+	"""
+	The postal code part of the address to create
+	"""
+	postalCode: String!
+	"""
+	The first part of the street part of the address to create
+	"""
+	street1: String!
+	"""
+	The second part of the street part of the address to create
+	"""
+	street2: String!
+}
+"""
+A name consisting of a firstName and lastName.
+"""
+input NameInput {
+	"""
+	The first name of the user
+	"""
+	firstName: String!
+	"""
+	The last name of the user
+	"""
+	lastName: String!
+}
+"""
+User address filter
+"""
+input UserAddressFilterInput {
+	isArchived: Boolean
+}
+"""
+User address order
+"""
+input UserAddressOrderInput {
+	"""
+	The direction to order by
+	"""
+	direction: OrderDirection
+	"""
+	The field to order by
+	"""
+	field: UserAddressOrderField
+}

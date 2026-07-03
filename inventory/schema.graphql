@@ -1,0 +1,276 @@
+extend schema @link(url: "https://specs.apollo.dev/federation/v2.5", import: ["@key", "@shareable", "@inaccessible"])
+
+"""
+Foreign type ProductVariant
+"""
+type ProductVariant @key(fields: "id") {
+	"""
+	The uuid identifier of the product variant
+	"""
+	id: UUID!
+	"""
+	A product item connection for referenced product items in stock
+	"""
+	productItems(
+		"""
+		Number of items to skip
+		"""
+		skip: Int = 0
+
+		"""
+		Number of items to return
+		"""
+		first: Int = 2147483647
+
+		"""
+		Ordering
+		"""
+		orderBy: ProductItemOrder
+
+		"""
+		Filtering
+		"""
+		filter: ProductItemOfProductVariantFilter
+	): ProductItemConnection
+	"""
+	The number of product items in stock
+	"""
+	inventoryCount: Int!
+}
+"""
+A universally unique identifier compliant UUID Scalar
+"""
+scalar UUID
+"""
+Ordering options for product items
+"""
+input ProductItemOrder {
+	"""
+	The field to order by
+	"""
+	field: ProductItemOrderField
+	"""
+	The direction to order by
+	"""
+	direction: OrderDirection
+}
+"""
+The field to order Product Items by
+"""
+enum ProductItemOrderField {
+	"""
+	Order Product Items by their ID
+	"""
+	ID
+}
+"""
+The direction to order a list of items by
+"""
+enum OrderDirection {
+	"""
+	Ascending Order
+	"""
+	ASC
+	"""
+	Decending Order
+	"""
+	DESC
+}
+"""
+Filtering options for product items of product variants
+"""
+input ProductItemOfProductVariantFilter {
+	"""
+	Current product item status
+	"""
+	inventoryStatus: ProductItemStatus
+}
+"""
+The status of an individual product item in the inventory
+"""
+enum ProductItemStatus {
+	"""
+	The item is in storage, not yet sold or reserved
+	"""
+	IN_STORAGE
+	"""
+	The item has been reserved for a customer but not yet sold
+	"""
+	RESERVED
+	"""
+	The item is in the process of being fulfilled (packed, shipped)
+	"""
+	IN_FULFILLMENT
+	"""
+	The item has been shipped to the customer
+	"""
+	SHIPPED
+	"""
+	The item has been delivered to the customer
+	"""
+	DELIVERED
+	"""
+	The item has been returned by the customer
+	"""
+	RETURNED
+	"""
+	The item has been lost (e.g., during shipping or in the warehouse)
+	"""
+	LOST
+}
+"""
+A product Item of a product variant
+"""
+type ProductItem @key(fields: "id") {
+	"""
+	The uuid identifier of the product item
+	"""
+	id: UUID!
+	"""
+	The corresponding product variant
+	"""
+	productVariant: ProductVariant!
+	"""
+	Describes the inventory status of the product item
+	"""
+	inventoryStatus: ProductItemStatus!
+	"""
+	Reference to the order that reserved the product item
+	"""
+	orderId: UUID
+}
+"""
+A connection of product items
+"""
+type ProductItemConnection @shareable {
+	"""
+	The resulting items
+	"""
+	nodes: [ProductItem!]
+	"""
+	The total amount of items in this connection
+	"""
+	totalCount: Int!
+	"""
+	Whether this connection has a next page
+	"""
+	hasNextPage: Boolean!
+}
+type Query {
+	"""
+	Retrieves all product items matching the filter
+	"""
+	productItems(
+		"""
+		Number of items to skip
+		"""
+		skip: Int = 0
+
+		"""
+		Number of items to return
+		"""
+		first: Int = 2147483647
+
+		"""
+		Ordering
+		"""
+		orderBy: ProductItemOrder
+
+		"""
+		Filtering
+		"""
+		filter: ProductItemFilter
+	): ProductItemConnection!
+	"""
+	Retrieves a product item by id
+	"""
+	productItem(
+		"""
+		UUID of the user
+		"""
+		id: UUID!
+	): ProductItem!
+}
+"""
+Filtering options for product items
+"""
+input ProductItemFilter {
+	"""
+	Linked product variant id
+	"""
+	productVariant: UUID
+	"""
+	Current product item status
+	"""
+	inventoryStatus: ProductItemStatus
+}
+type Mutation {
+	"""
+	Adds a batch of product items with the specified productVartiantId of size number
+	"""
+	createProductItemBatch(input: CreateProductItemBatchInput!): [ProductItem!]!
+	"""
+	Updates storage state, productVariant of a specific product item referenced with an Id
+	"""
+	updateProductItem(input: UpdateProductItemInput!): ProductItem!
+	"""
+	Deletes a product item by id
+	"""
+	deleteProductItem(
+		"""
+		UUID of product item to delete
+		"""
+		id: UUID!
+	): ProductItem!
+	"""
+	Reserves a batch of product items of a chosen product variant
+	"""
+	reserveProductItemBatch(input: ReserveProductItemsBatchInput!): [ProductItem!]!
+}
+"""
+The input of a product item batch creation
+"""
+input CreateProductItemBatchInput {
+	"""
+	The product variant id of the product item
+	"""
+	productVariantId: UUID!
+	"""
+	The number of products to add
+	"""
+	number: Int!
+}
+"""
+The input of a product item update
+"""
+input UpdateProductItemInput {
+	"""
+	The product item identifier
+	"""
+	id: UUID!
+	"""
+	The product variant id of the product item
+	"""
+	productVariantId: UUID!
+	"""
+	The inventory state of the product item
+	"""
+	inventoryStatus: ProductItemStatus!
+}
+"""
+The input to reserve a batch of product items
+"""
+input ReserveProductItemsBatchInput {
+	"""
+	The product variant id of the product item
+	"""
+	productVariantId: UUID!
+	"""
+	The number of product items to reserve
+	"""
+	number: Int!
+	"""
+	The order id that reserves the product items
+	"""
+	orderId: UUID!
+}

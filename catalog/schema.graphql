@@ -1,0 +1,1190 @@
+extend schema @link(url: "https://specs.apollo.dev/federation/v2.5", import: ["@key", "@shareable", "@inaccessible"])
+
+"""
+A characteristic of a Category.
+"""
+interface CategoryCharacteristic implements Node {
+	"""
+	The Category this item belongs to.
+	"""
+	category: Category!
+	"""
+	The description of the CategoryCharacteristic.
+	"""
+	description: String!
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+	"""
+	The name of the CategoryCharacteristic.
+	"""
+	name: String!
+}
+"""
+A value for a CategoryCharacteristic.
+"""
+interface CategoryCharacteristicValue {
+	"""
+	The associated CategoryCharacteristic this is a value of.
+	"""
+	characteristic: CategoryCharacteristic!
+}
+"""
+An object with an ID.
+"""
+interface Node {
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+}
+"""
+A categorical characteristic of a category.
+"""
+type CategoricalCategoryCharacteristic implements CategoryCharacteristic & Node @key(fields: "id", resolvable: true) {
+	"""
+	The Category this item belongs to.
+	"""
+	category: Category!
+	"""
+	The description of the CategoryCharacteristic.
+	"""
+	description: String!
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+	"""
+	The name of the CategoryCharacteristic.
+	"""
+	name: String!
+	"""
+	Get all associated values
+	"""
+	values(
+		"""
+		Number of items to return
+		"""
+		first: Int
+
+		"""
+		Ordering
+		"""
+		orderBy: CategoricalCategoryCharacteristicValueOrderInput
+
+		"""
+		Number of items to skip
+		"""
+		skip: Int
+	): CategoricalCategoryCharacteristicValueConnection!
+}
+"""
+A possible value for a categorical characteristic.
+"""
+type CategoricalCategoryCharacteristicValue implements CategoryCharacteristicValue @shareable {
+	"""
+	The associated CategoryCharacteristic this is a value of.
+	"""
+	characteristic: CategoryCharacteristic!
+	"""
+	The value of the characteristic.
+	"""
+	value: String!
+}
+"""
+A connection to a list of `CategoricalCategoryCharacteristicValue` values.
+"""
+type CategoricalCategoryCharacteristicValueConnection @shareable {
+	"""
+	Whether this connection has a next page
+	"""
+	hasNextPage: Boolean!
+	"""
+	The resulting items.
+	"""
+	nodes: [CategoricalCategoryCharacteristicValue!]!
+	"""
+	The total amount of items in this connection
+	"""
+	totalCount: Int!
+}
+"""
+A category
+"""
+type Category implements Node @key(fields: "id", resolvable: true) {
+	"""
+	Get characteristics for the category
+	"""
+	characteristics(
+		"""
+		Number of items to return
+		"""
+		first: Int
+
+		"""
+		Ordering
+		"""
+		orderBy: CategoryCharacteristicOrderInput
+
+		"""
+		Number of items to skip
+		"""
+		skip: Int
+	): CategoryCharacteristicConnection!
+	"""
+	The description of the category.
+	"""
+	description: String!
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+	"""
+	The name of the category.
+	"""
+	name: String!
+	"""
+	Get all associated products
+	"""
+	products(
+		"""
+		Filtering
+		"""
+		filter: ProductFilterInput
+
+		"""
+		Number of items to return
+		"""
+		first: Int
+
+		"""
+		Ordering
+		"""
+		orderBy: ProductOrderInput
+
+		"""
+		Number of items to skip
+		"""
+		skip: Int
+	): ProductConnection!
+}
+"""
+A connection to a list of `CategoryCharacteristic` values.
+"""
+type CategoryCharacteristicConnection @shareable {
+	"""
+	Whether this connection has a next page
+	"""
+	hasNextPage: Boolean!
+	"""
+	The resulting items.
+	"""
+	nodes: [CategoryCharacteristic!]!
+	"""
+	The total amount of items in this connection
+	"""
+	totalCount: Int!
+}
+"""
+A connection to a list of `CategoryCharacteristicValue` values.
+"""
+type CategoryCharacteristicValueConnection @shareable {
+	"""
+	Whether this connection has a next page
+	"""
+	hasNextPage: Boolean!
+	"""
+	The resulting items.
+	"""
+	nodes: [CategoryCharacteristicValue!]!
+	"""
+	The total amount of items in this connection
+	"""
+	totalCount: Int!
+}
+"""
+A connection to a list of `Category` values.
+"""
+type CategoryConnection @shareable {
+	"""
+	Whether this connection has a next page
+	"""
+	hasNextPage: Boolean!
+	"""
+	The resulting items.
+	"""
+	nodes: [Category!]!
+	"""
+	The total amount of items in this connection
+	"""
+	totalCount: Int!
+}
+"""
+A Media file.
+"""
+type Media implements Node @key(fields: "id", resolvable: false) {
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+}
+"""
+A connection to a list of `Media` values.
+"""
+type MediaConnection @shareable {
+	"""
+	Whether this connection has a next page
+	"""
+	hasNextPage: Boolean!
+	"""
+	The resulting items.
+	"""
+	nodes: [Media!]!
+	"""
+	The total amount of items in this connection
+	"""
+	totalCount: Int!
+}
+type Mutation {
+	"""
+	Create a new value for a characteristic whose values have no further meaning
+	"""
+	createCategoricalCategoryCharacteristic(
+		"""
+		Input for the createCategoricalCategoryCharacteristic mutation
+		"""
+		input: CreateCategoricalCategoryCharacteristicInput!
+	): CategoricalCategoryCharacteristic!
+	"""
+	Create a new category
+	"""
+	createCategory(
+		"""
+		Input for the createCategory mutation
+		"""
+		input: CreateCategoryInput!
+	): Category!
+	"""
+	Create a new numerical category characteristic
+	"""
+	createNumericalCategoryCharacteristic(
+		"""
+		Input for the createNumericalCategoryCharacteristic mutation
+		"""
+		input: CreateNumericalCategoryCharacteristicInput!
+	): NumericalCategoryCharacteristic!
+	"""
+	Create a new product
+	"""
+	createProduct(
+		"""
+		Input for the createProduct mutation
+		"""
+		input: CreateProductInput!
+	): Product!
+	"""
+	Create a new product variant
+	"""
+	createProductVariant(
+		"""
+		Input for the createProductVariant mutation
+		"""
+		input: CreateProductVariantInput!
+	): ProductVariant!
+	"""
+	Create a new product variant version
+	"""
+	createProductVariantVersion(
+		"""
+		Input for the createProductVariantVersion mutation
+		"""
+		input: CreateProductVariantVersionInput!
+	): ProductVariantVersion!
+	"""
+	Update a product
+	"""
+	updateProduct(
+		"""
+		Input for the updateProduct mutation
+		"""
+		input: UpdateProductInput!
+	): Product!
+	"""
+	Update a product variant
+	"""
+	updateProductVariant(
+		"""
+		Input for the updateProductVariant mutation
+		"""
+		input: UpdateProductVariantInput!
+	): ProductVariant!
+}
+"""
+A numerical characteristic of a Category.
+"""
+type NumericalCategoryCharacteristic implements CategoryCharacteristic & Node @key(fields: "id", resolvable: true) {
+	"""
+	The Category this item belongs to.
+	"""
+	category: Category!
+	"""
+	The description of the CategoryCharacteristic.
+	"""
+	description: String!
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+	"""
+	The name of the CategoryCharacteristic.
+	"""
+	name: String!
+	"""
+	The unit of the NumericalCategoryCharacteristic.
+	"""
+	unit: String!
+}
+"""
+A numerical value of a NumericalCategoryCharacteristic.
+"""
+type NumericalCategoryCharacteristicValue implements CategoryCharacteristicValue @shareable {
+	"""
+	The associated CategoryCharacteristic this is a value of.
+	"""
+	characteristic: CategoryCharacteristic!
+	"""
+	The value of the NumericalCategoryCharacteristic.
+	"""
+	value: Float!
+}
+"""
+A product.
+"""
+type Product implements Node @key(fields: "id", resolvable: true) {
+	"""
+	Get all associated Categories
+	"""
+	categories(
+		"""
+		Number of items to return
+		"""
+		first: Int
+
+		"""
+		Ordering
+		"""
+		orderBy: CategoryOrderInput
+
+		"""
+		Number of items to skip
+		"""
+		skip: Int
+	): CategoryConnection!
+	"""
+	The default variant of the product.
+	"""
+	defaultVariant: ProductVariant!
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+	"""
+	An internal name to identify the Product, not visible to customers.
+	"""
+	internalName: String!
+	"""
+	If true, the Product is visible to customers.
+	"""
+	isPubliclyVisible: Boolean!
+	"""
+	Get all associated ProductVariants
+	"""
+	variants(
+		"""
+		Filtering
+		"""
+		filter: ProductVariantFilterInput
+
+		"""
+		Number of items to return
+		"""
+		first: Int
+
+		"""
+		Ordering
+		"""
+		orderBy: ProductVariantOrderInput
+
+		"""
+		Number of items to skip
+		"""
+		skip: Int
+	): ProductVariantConnection!
+}
+"""
+A connection to a list of `Product` values.
+"""
+type ProductConnection @shareable {
+	"""
+	Whether this connection has a next page
+	"""
+	hasNextPage: Boolean!
+	"""
+	The resulting items.
+	"""
+	nodes: [Product!]!
+	"""
+	The total amount of items in this connection
+	"""
+	totalCount: Int!
+}
+"""
+A variant of a Product.
+"""
+type ProductVariant implements Node @key(fields: "id", resolvable: true) {
+	"""
+	The current version of the ProductVariant.
+	"""
+	currentVersion: ProductVariantVersion!
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+	"""
+	If true, the ProductVariant is visible to customers.
+	"""
+	isPubliclyVisible: Boolean!
+	"""
+	The Product belonging to this variant.
+	"""
+	product: Product!
+	"""
+	Get all associated versions
+	"""
+	versions(
+		"""
+		Number of items to return
+		"""
+		first: Int
+
+		"""
+		Ordering
+		"""
+		orderBy: ProductVariantVersionOrderInput
+
+		"""
+		Number of items to skip
+		"""
+		skip: Int
+	): ProductVariantVersionConnection!
+}
+"""
+A connection to a list of `ProductVariant` values.
+"""
+type ProductVariantConnection @shareable {
+	"""
+	Whether this connection has a next page
+	"""
+	hasNextPage: Boolean!
+	"""
+	The resulting items.
+	"""
+	nodes: [ProductVariant!]!
+	"""
+	The total amount of items in this connection
+	"""
+	totalCount: Int!
+}
+"""
+A version of a ProductVariant.
+"""
+type ProductVariantVersion implements Node @key(fields: "id", resolvable: true) {
+	"""
+	The amount of days for which an instance of the ProductVariantVersion can be returned after purchase, if null can be returned indefinitely.
+	"""
+	canBeReturnedForDays: Int
+	"""
+	Get all associated CategoryCharacteristicValues
+	"""
+	characteristicValues(
+		"""
+		Number of items to return
+		"""
+		first: Int
+
+		"""
+		Ordering
+		"""
+		orderBy: CategoryCharacteristicValueOrderInput
+
+		"""
+		Number of items to skip
+		"""
+		skip: Int
+	): CategoryCharacteristicValueConnection!
+	"""
+	The date when the ProductVariantVersion version was created.
+	"""
+	createdAt: DateTime!
+	"""
+	The description of the ProductVariantVersion.
+	"""
+	description: String!
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+	"""
+	Get all associated Medias
+	"""
+	medias(
+		"""
+		Number of items to return
+		"""
+		first: Int
+
+		"""
+		Ordering
+		"""
+		orderBy: CommonOrderInput
+
+		"""
+		Number of items to skip
+		"""
+		skip: Int
+	): MediaConnection!
+	"""
+	The name of the ProductVariantVersion.
+	"""
+	name: String!
+	"""
+	The ProductVariant this is a version of.
+	"""
+	productVariant: ProductVariant!
+	"""
+	The retail price of the ProductVariantVersion.
+	"""
+	retailPrice: Int!
+	"""
+	The associated TaxRate.
+	"""
+	taxRate: TaxRate!
+	"""
+	The version of the ProductVariantVersion.
+	"""
+	version: Int!
+	"""
+	The weight of the ProductVariantVersion.
+	"""
+	weight: Float!
+}
+"""
+A connection to a list of `ProductVariantVersion` values.
+"""
+type ProductVariantVersionConnection @shareable {
+	"""
+	Whether this connection has a next page
+	"""
+	hasNextPage: Boolean!
+	"""
+	The resulting items.
+	"""
+	nodes: [ProductVariantVersion!]!
+	"""
+	The total amount of items in this connection
+	"""
+	totalCount: Int!
+}
+type Query {
+	"""
+	Get all categories
+	"""
+	categories(
+		"""
+		Number of items to return
+		"""
+		first: Int
+
+		"""
+		Ordering
+		"""
+		orderBy: CategoryOrderInput
+
+		"""
+		Number of items to skip
+		"""
+		skip: Int
+	): CategoryConnection!
+	"""
+	Get a category by id
+	"""
+	category(
+		"""
+		The id of the category
+		"""
+		id: UUID!
+	): Category!
+	"""
+	Get a characteristic by id
+	"""
+	categoryCharacteristic(
+		"""
+		The id of the characteristic
+		"""
+		id: UUID!
+	): CategoryCharacteristic!
+	"""
+	Get a product by id
+	"""
+	product(
+		"""
+		The id of the product
+		"""
+		id: UUID!
+	): Product!
+	"""
+	Get all products
+	"""
+	products(
+		"""
+		Filtering
+		"""
+		filter: ProductFilterInput
+
+		"""
+		Number of items to return
+		"""
+		first: Int
+
+		"""
+		Ordering
+		"""
+		orderBy: ProductOrderInput
+
+		"""
+		Number of items to skip
+		"""
+		skip: Int
+	): ProductConnection!
+}
+"""
+A TaxRate.
+"""
+type TaxRate implements Node @key(fields: "id", resolvable: false) {
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+}
+"""
+CategoricalCategoryCharacteristicValue order fields
+"""
+enum CategoricalCategoryCharacteristicValueOrderField {
+	"""
+	Order CategoricalCategoryCharacteristicValue by their id
+	"""
+	VALUE
+}
+"""
+CategoryCharacteristic order fields
+"""
+enum CategoryCharacteristicOrderField {
+	"""
+	Order categoryCharacteristics by their id
+	"""
+	ID
+}
+"""
+CategoryCharacteristicValue order fields
+"""
+enum CategoryCharacteristicValueOrderField {
+	"""
+	Order categoryCharacteristicValues by their id
+	"""
+	ID
+}
+"""
+Category order fields
+"""
+enum CategoryOrderField {
+	"""
+	Order categories by their id
+	"""
+	ID
+	"""
+	Order categories by their name
+	"""
+	NAME
+}
+"""
+Common order fields
+"""
+enum CommonOrderField {
+	"""
+	Order entities by their id
+	"""
+	ID
+}
+"""
+Order direction
+"""
+enum OrderDirection {
+	"""
+	Ascending order
+	"""
+	ASC
+	"""
+	Descending order
+	"""
+	DESC
+}
+"""
+Product order fields
+"""
+enum ProductOrderField {
+	"""
+	Order products by their id
+	"""
+	ID
+	"""
+	Order products by their internal name
+	"""
+	INTERNAL_NAME
+}
+"""
+ProductVariant order fields
+"""
+enum ProductVariantOrderField {
+	"""
+	Order productVariants by their id
+	"""
+	ID
+}
+"""
+ProductVariantVersion order fields
+"""
+enum ProductVariantVersionOrderField {
+	"""
+	Order productVariantVersions by their creation date
+	"""
+	CREATED_AT
+	"""
+	Order productVariantVersions by their id
+	"""
+	ID
+	"""
+	Order productVariantVersions by their version
+	"""
+	VERSION
+}
+"""
+A slightly refined version of RFC-3339 compliant DateTime Scalar
+"""
+scalar DateTime
+"""
+A universally unique identifier compliant UUID Scalar
+"""
+scalar UUID
+"""
+Input to create a CategoricalCategoryCharacteristic for a Category
+"""
+input CategoricalCategoryCharacteristicInput {
+	"""
+	The description of the CategoricalCategoryCharacteristic
+	"""
+	description: String!
+	"""
+	The name of the CategoricalCategoryCharacteristic
+	"""
+	name: String!
+}
+"""
+Input for creating a CategoricalCategoryCharacteristicValue.
+"""
+input CategoricalCategoryCharacteristicValueInput {
+	"""
+	The id of the CategoryCharacteristic.
+	"""
+	characteristicId: UUID!
+	"""
+	The value of the CategoricalCategoryCharacteristicValue.
+	"""
+	value: String!
+}
+"""
+CategoricalCategoryCharacteristicValue order
+"""
+input CategoricalCategoryCharacteristicValueOrderInput {
+	"""
+	The direction to order by
+	"""
+	direction: OrderDirection
+	"""
+	The field to order by
+	"""
+	field: CategoricalCategoryCharacteristicValueOrderField
+}
+"""
+CategoryCharacteristic order
+"""
+input CategoryCharacteristicOrderInput {
+	"""
+	The direction to order by
+	"""
+	direction: OrderDirection
+	"""
+	The field to order by
+	"""
+	field: CategoryCharacteristicOrderField
+}
+"""
+CategoryCharacteristicValue order
+"""
+input CategoryCharacteristicValueOrderInput {
+	"""
+	The direction to order by
+	"""
+	direction: OrderDirection
+	"""
+	The field to order by
+	"""
+	field: CategoryCharacteristicValueOrderField
+}
+"""
+Category order
+"""
+input CategoryOrderInput {
+	"""
+	The direction to order by
+	"""
+	direction: OrderDirection
+	"""
+	The field to order by
+	"""
+	field: CategoryOrderField
+}
+"""
+Discount order
+"""
+input CommonOrderInput {
+	"""
+	The direction to order by
+	"""
+	direction: OrderDirection
+	"""
+	The field to order by
+	"""
+	field: CommonOrderField
+}
+"""
+Input for the createCategoricalCategoryCharacteristic mutation
+"""
+input CreateCategoricalCategoryCharacteristicInput {
+	"""
+	The Category that the CategoricalCategoryCharacteristicI belongs to
+	"""
+	categoryId: UUID!
+	"""
+	The description of the CategoricalCategoryCharacteristic
+	"""
+	description: String!
+	"""
+	The name of the CategoricalCategoryCharacteristic
+	"""
+	name: String!
+}
+"""
+Input for the createCategory mutation
+"""
+input CreateCategoryInput {
+	"""
+	The CategoricalCategoryCharacteristics of the Category
+	"""
+	categoricalCharacteristics: [CategoricalCategoryCharacteristicInput!]!
+	"""
+	The description of the Category
+	"""
+	description: String!
+	"""
+	The name of the Category
+	"""
+	name: String!
+	"""
+	The NumericalCategoryCharacteristics of the Category
+	"""
+	numericalCharacteristics: [NumericalCategoryCharacteristicInput!]!
+}
+"""
+Input for the createNumericalCategoryCharacteristic mutation
+"""
+input CreateNumericalCategoryCharacteristicInput {
+	"""
+	The Category that the NumericalCategoryCharacteristic belongs to
+	"""
+	categoryId: UUID!
+	"""
+	The description of the NumericalCategoryCharacteristic
+	"""
+	description: String!
+	"""
+	The name of the NumericalCategoryCharacteristic
+	"""
+	name: String!
+	"""
+	The unit of the NumericalCategoryCharacteristic
+	"""
+	unit: String!
+}
+"""
+Input for the createProduct mutation
+"""
+input CreateProductInput {
+	"""
+	The Categories this product is associated with.
+	"""
+	categoryIds: [UUID!]!
+	"""
+	The default ProductVariant of the Product.
+	"""
+	defaultVariant: ProductVariantInput!
+	"""
+	An internal name to identify the Product, not visible to customers.
+	"""
+	internalName: String!
+	"""
+	If true, the Product is visible to customers.
+	"""
+	isPubliclyVisible: Boolean!
+}
+"""
+Input for the createProductVariant mutation
+"""
+input CreateProductVariantInput {
+	"""
+	The initial ProductVariantVersion of the ProductVariant.
+	"""
+	initialVersion: ProductVariantVersionInput!
+	"""
+	If true, the ProductVariant is visible to customers.
+	"""
+	isPubliclyVisible: Boolean!
+	"""
+	The id of the Product this ProductVariant belongs to.
+	"""
+	productId: UUID!
+}
+"""
+Input for the createProductVariantVersion mutation
+"""
+input CreateProductVariantVersionInput {
+	"""
+	The amount of days for which an instance of the ProductVariant can be returned after purchase, if null can be returned indefinitely.
+	"""
+	canBeReturnedForDays: Int
+	"""
+	The CategoricalCategoryCharacteristicValues of the ProductVariant, must be compatible with the Categories of the associated Product.
+	"""
+	categoricalCharacteristicValues: [CategoricalCategoryCharacteristicValueInput!]!
+	"""
+	The description of the ProductVariant.
+	"""
+	description: String!
+	"""
+	The associated Media files.
+	"""
+	mediaIds: [UUID!]!
+	"""
+	The name of the ProductVariant.
+	"""
+	name: String!
+	"""
+	The NumericalCategoryCharacteristicValues of the ProductVariant, must be compatible with the Categories of the associated Product.
+	"""
+	numericalCharacteristicValues: [NumericalCategoryCharacteristicValueInput!]!
+	"""
+	The id of the ProductVariant this ProductVariantVersion belongs to.
+	"""
+	productVariantId: UUID!
+	"""
+	The retail price of the ProductVariant.
+	"""
+	retailPrice: Int!
+	"""
+	The associated TaxRate
+	"""
+	taxRateId: UUID!
+	"""
+	The weight of a single instance of the ProductVariant.
+	"""
+	weight: Float!
+}
+"""
+Input to create a characteristic whose values have arithmetic meaning, i.e. '8GB'
+"""
+input NumericalCategoryCharacteristicInput {
+	"""
+	The description of the NumericalCategoryCharacteristic
+	"""
+	description: String!
+	"""
+	The name of the NumericalCategoryCharacteristic
+	"""
+	name: String!
+	"""
+	The unit of the NumericalCategoryCharacteristic
+	"""
+	unit: String!
+}
+"""
+Input for creating a NumericalCategoryCharacteristicValue.
+"""
+input NumericalCategoryCharacteristicValueInput {
+	"""
+	The id of the CategoryCharacteristic.
+	"""
+	characteristicId: UUID!
+	"""
+	The value of the NumericalCategoryCharacteristicValue.
+	"""
+	value: Float!
+}
+"""
+Product filter
+"""
+input ProductFilterInput {
+	isPubliclyVisible: Boolean
+}
+"""
+Product order
+"""
+input ProductOrderInput {
+	"""
+	The direction to order by
+	"""
+	direction: OrderDirection
+	"""
+	The field to order by
+	"""
+	field: ProductOrderField
+}
+"""
+Product variant filter
+"""
+input ProductVariantFilterInput {
+	isPubliclyVisible: Boolean
+}
+"""
+Input for creating a product variant
+"""
+input ProductVariantInput {
+	"""
+	The initial ProductVariantVersion of the ProductVariant.
+	"""
+	initialVersion: ProductVariantVersionInput!
+	"""
+	If true, the ProductVariant is visible to customers.
+	"""
+	isPubliclyVisible: Boolean!
+}
+"""
+ProductVariant order
+"""
+input ProductVariantOrderInput {
+	"""
+	The direction to order by
+	"""
+	direction: OrderDirection
+	"""
+	The field to order by
+	"""
+	field: ProductVariantOrderField
+}
+"""
+Input for creating a ProductVariantVersion.
+"""
+input ProductVariantVersionInput {
+	"""
+	The amount of days for which an instance of the ProductVariant can be returned after purchase, if null can be returned indefinitely.
+	"""
+	canBeReturnedForDays: Int
+	"""
+	The CategoricalCategoryCharacteristicValues of the ProductVariant, must be compatible with the Categories of the associated Product.
+	"""
+	categoricalCharacteristicValues: [CategoricalCategoryCharacteristicValueInput!]!
+	"""
+	The description of the ProductVariant.
+	"""
+	description: String!
+	"""
+	The associated Media files.
+	"""
+	mediaIds: [UUID!]!
+	"""
+	The name of the ProductVariant.
+	"""
+	name: String!
+	"""
+	The NumericalCategoryCharacteristicValues of the ProductVariant, must be compatible with the Categories of the associated Product.
+	"""
+	numericalCharacteristicValues: [NumericalCategoryCharacteristicValueInput!]!
+	"""
+	The retail price of the ProductVariant.
+	"""
+	retailPrice: Int!
+	"""
+	The associated TaxRate
+	"""
+	taxRateId: UUID!
+	"""
+	The weight of a single instance of the ProductVariant.
+	"""
+	weight: Float!
+}
+"""
+ProductVariantVersion order
+"""
+input ProductVariantVersionOrderInput {
+	"""
+	The direction to order by
+	"""
+	direction: OrderDirection
+	"""
+	The field to order by
+	"""
+	field: ProductVariantVersionOrderField
+}
+"""
+Input for the updateProduct mutation.
+"""
+input UpdateProductInput {
+	"""
+	If present, new value for defaultVariantId
+	"""
+	defaultVariantId: UUID
+	"""
+	UUID of the product to be updated
+	"""
+	id: UUID!
+	"""
+	If present, new value for internalName
+	"""
+	internalName: String
+	"""
+	If present, new value for isPubliclyVisible
+	"""
+	isPubliclyVisible: Boolean
+}
+"""
+Input for the updateProductVariant mutation.
+"""
+input UpdateProductVariantInput {
+	"""
+	UUID of the product variant to be updated
+	"""
+	id: UUID!
+	"""
+	If present, new value for isPubliclyVisible
+	"""
+	isPubliclyVisible: Boolean
+}

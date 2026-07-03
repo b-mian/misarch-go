@@ -1,0 +1,59 @@
+# gqlgen config for the payment service. Codegen: `go tool gqlgen generate` from
+# this directory (schema.graphql is produced from the canonical MiSArch
+# subgraph SDL by tools/sdlprep).
+schema:
+  - schema.graphql
+
+exec:
+  filename: graph/generated.go
+  package: graph
+
+model:
+  filename: graph/models_gen.go
+  package: graph
+
+resolver:
+  layout: follow-schema
+  dir: graph
+  package: graph
+  filename_template: "{name}.resolvers.go"
+
+federation:
+  filename: graph/federation.go
+  package: graph
+  version: 2
+
+omit_slice_element_pointers: true
+omit_getters: true
+
+models:
+  UUID:
+    model: misarch/pkg/scalars.UUID
+  DateTime:
+    model: misarch/pkg/scalars.DateTime
+  JSONObject:
+    model: misarch/pkg/scalars.JSONObject
+  # Relationship fields are resolved lazily via field resolvers (never eagerly
+  # embedded in the parent struct) so unrequested edges execute no queries and
+  # cyclic references terminate. The extraFields carry the internal FKs the
+  # resolvers need; they are not part of the public schema.
+  Payment:
+    fields:
+      paymentInformation: { resolver: true }
+    extraFields:
+      # Mongo string FK to paymentinformations._id (the ObjectId ref quirk:
+      # PaymentInformation._id is a string UUID, so the stored ref is a string).
+      PaymentInformationID:
+        type: string
+  PaymentInformation:
+    fields:
+      user: { resolver: true }
+      payments: { resolver: true }
+    extraFields:
+      # The owning user's id (stored as a { id } subdocument in Mongo). The
+      # user() field resolver re-projects it as a federation User stub.
+      UserID:
+        type: github.com/google/uuid.UUID
+  User:
+    fields:
+      paymentInformations: { resolver: true }

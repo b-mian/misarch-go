@@ -1,0 +1,70 @@
+# gqlgen config for the notification service. Codegen: `go tool gqlgen generate` from
+# this directory (schema.graphql is produced from the canonical MiSArch
+# subgraph SDL by tools/sdlprep).
+schema:
+  - schema.graphql
+
+exec:
+  filename: graph/generated.go
+  package: graph
+
+model:
+  filename: graph/models_gen.go
+  package: graph
+
+resolver:
+  layout: follow-schema
+  dir: graph
+  package: graph
+  filename_template: "{name}.resolvers.go"
+
+federation:
+  filename: graph/federation.go
+  package: graph
+  version: 2
+
+omit_slice_element_pointers: true
+omit_getters: true
+
+models:
+  UUID:
+    model: misarch/pkg/scalars.UUID
+  DateTime:
+    model: misarch/pkg/scalars.DateTime
+  # Relationship / derived fields are resolved lazily via field resolvers (never
+  # eagerly embedded) so unrequested edges execute no queries and cyclic
+  # references terminate. extraFields carry the internal state the resolvers
+  # need; they are not part of the public schema.
+  Notification:
+    fields:
+      # user is resolved lazily to {id: userId} via the User data loader in the
+      # original; isRead is derived (dateRead != null), never stored.
+      user: { resolver: true }
+      isRead: { resolver: true }
+    extraFields:
+      UserID:
+        type: github.com/google/uuid.UUID
+  User:
+    fields:
+      # notifications takes pagination args and runs SQL, so it must resolve.
+      notifications: { resolver: true }
+  NotificationConnection:
+    fields:
+      # Each connection field runs its own independent, lazily-evaluated SQL
+      # query (nodes / totalCount / hasNextPage), matching the original.
+      nodes: { resolver: true }
+      totalCount: { resolver: true }
+      hasNextPage: { resolver: true }
+    extraFields:
+      # Query parameters carried from User.notifications so each field resolver
+      # can run its own query.
+      UserID:
+        type: github.com/google/uuid.UUID
+      First:
+        type: "*int"
+      Skip:
+        type: "*int"
+      OrderColumns:
+        type: "[]string"
+      Ascending:
+        type: bool

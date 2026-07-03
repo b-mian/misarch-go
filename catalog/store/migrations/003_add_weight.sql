@@ -1,0 +1,2 @@
+ALTER TABLE ProductVariantVersionEntity
+ADD COLUMN weight DOUBLE PRECISION DEFAULT 0;

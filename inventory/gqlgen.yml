@@ -1,0 +1,54 @@
+# gqlgen config for the inventory service. Codegen: `go tool gqlgen generate` from
+# this directory (schema.graphql is produced from the canonical MiSArch
+# subgraph SDL by tools/sdlprep).
+schema:
+  - schema.graphql
+
+exec:
+  filename: graph/generated.go
+  package: graph
+
+model:
+  filename: graph/models_gen.go
+  package: graph
+
+resolver:
+  layout: follow-schema
+  dir: graph
+  package: graph
+  filename_template: "{name}.resolvers.go"
+
+federation:
+  filename: graph/federation.go
+  package: graph
+  version: 2
+
+omit_slice_element_pointers: true
+omit_getters: true
+
+models:
+  # The inventory UUID scalar is a plain string (see graph/scalars.go): the
+  # original scalar validates a shape regex then passes the value through
+  # unchanged, so we must NOT bind to github.com/google/uuid.UUID (which
+  # canonicalizes case). Bound to a local string type with custom
+  # Marshal/UnmarshalUUID reproducing the original's "invalid uuid" error.
+  UUID:
+    model: misarch/inventory/graph.UUID
+  # Relationship fields returning another object type are resolved lazily via
+  # field resolvers (never eagerly embedded), so unrequested edges execute no
+  # queries and cyclic references terminate. The extraFields carry the internal
+  # FKs those resolvers need; they are not part of the public schema.
+  #
+  # ProductVariant.productItems / .inventoryCount are DB-backed resolvers (they
+  # take args and/or run counts). ProductItem.productVariant returns the foreign
+  # ProductVariant entity as a stub built from the stored variant id.
+  ProductVariant:
+    fields:
+      productItems: { resolver: true }
+      inventoryCount: { resolver: true }
+  ProductItem:
+    fields:
+      productVariant: { resolver: true }
+    extraFields:
+      ProductVariantID:
+        type: string

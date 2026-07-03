@@ -1,0 +1,193 @@
+extend schema @link(url: "https://specs.apollo.dev/federation/v2.5", import: ["@key", "@shareable", "@inaccessible"])
+
+"""
+An object with an ID.
+"""
+interface Node {
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+}
+type Mutation {
+	"""
+	Create a new notification
+	"""
+	createNotification(
+		"""
+		Input for the createNotification mutation
+		"""
+		input: CreateNotificationInput!
+	): Notification!
+	"""
+	Update a notification
+	"""
+	updateNotification(
+		"""
+		Input for the updateNotification mutation
+		"""
+		input: UpdateNotificationInput!
+	): Notification!
+}
+"""
+A notification.
+"""
+type Notification implements Node @key(fields: "id", resolvable: true) {
+	"""
+	The content of the notification
+	"""
+	body: String!
+	"""
+	The date the notification was read
+	"""
+	dateRead: DateTime
+	"""
+	The date the notification was sent
+	"""
+	dateSent: DateTime!
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+	"""
+	Whether the notification has been read
+	"""
+	isRead: Boolean!
+	"""
+	The title of the notification
+	"""
+	title: String!
+	"""
+	The user this notification was sent to.
+	"""
+	user: User!
+}
+"""
+A connection to a list of `Notification` values.
+"""
+type NotificationConnection @shareable {
+	"""
+	Whether this connection has a next page
+	"""
+	hasNextPage: Boolean!
+	"""
+	The resulting items.
+	"""
+	nodes: [Notification!]!
+	"""
+	The total amount of items in this connection
+	"""
+	totalCount: Int!
+}
+type Query {
+	"""
+	Get a notification by id
+	"""
+	notification(
+		"""
+		The id of the notification
+		"""
+		id: UUID!
+	): Notification!
+}
+"""
+A user.
+"""
+type User implements Node @key(fields: "id", resolvable: true) {
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+	"""
+	Get all notifications the user received
+	"""
+	notifications(
+		"""
+		Number of items to return
+		"""
+		first: Int
+
+		"""
+		Ordering
+		"""
+		orderBy: NotificationOrderInput
+
+		"""
+		Number of items to skip
+		"""
+		skip: Int
+	): NotificationConnection!
+}
+"""
+Notification order fields
+"""
+enum NotificationOrderField {
+	"""
+	Order notifications by their id
+	"""
+	ID
+}
+"""
+Order direction
+"""
+enum OrderDirection {
+	"""
+	Ascending order
+	"""
+	ASC
+	"""
+	Descending order
+	"""
+	DESC
+}
+"""
+A slightly refined version of RFC-3339 compliant DateTime Scalar
+"""
+scalar DateTime
+"""
+A universally unique identifier compliant UUID Scalar
+"""
+scalar UUID
+"""
+Input for the createNotification mutation
+"""
+input CreateNotificationInput {
+	"""
+	body of the notification to create
+	"""
+	body: String!
+	"""
+	title of the notification to create
+	"""
+	title: String!
+	"""
+	id of the user the notification should be sent to
+	"""
+	userId: UUID!
+}
+"""
+Notification order
+"""
+input NotificationOrderInput {
+	"""
+	The direction to order by
+	"""
+	direction: OrderDirection
+	"""
+	The field to order by
+	"""
+	field: NotificationOrderField
+}
+"""
+Input for the updateNotification mutation
+"""
+input UpdateNotificationInput {
+	"""
+	id of the notification to update
+	"""
+	id: UUID!
+	"""
+	mark the notification as read/unread
+	"""
+	isRead: Boolean!
+}

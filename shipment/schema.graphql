@@ -1,0 +1,513 @@
+extend schema @link(url: "https://specs.apollo.dev/federation/v2.5", import: ["@key", "@shareable", "@inaccessible"])
+
+"""
+An item in an order.
+"""
+interface Address {
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+}
+"""
+An object with an ID.
+"""
+interface Node {
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+}
+type Mutation {
+	"""
+	Archive a shipment method
+	"""
+	archiveShipmentMethod(
+		"""
+		Input for the archiveShipmentMethod mutation
+		"""
+		input: ArchiveShipmentMethodInput!
+	): ShipmentMethod!
+	"""
+	Create a new shipment method
+	"""
+	createShipmentMethod(
+		"""
+		Input for the createShipmentMethod mutation
+		"""
+		input: CreateShipmentMethodInput!
+	): ShipmentMethod!
+}
+"""
+The Order of a user.
+"""
+type Order implements Node @key(fields: "id", resolvable: true) {
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+	"""
+	Get all associated Shipments
+	"""
+	shipments(
+		"""
+		Filtering
+		"""
+		filter: ShipmentFilterInput
+
+		"""
+		Number of items to return
+		"""
+		first: Int
+
+		"""
+		Ordering
+		"""
+		orderBy: ShipmentOrderInput
+
+		"""
+		Number of items to skip
+		"""
+		skip: Int
+	): ShipmentConnection!
+}
+"""
+An item in an order.
+"""
+type OrderItem implements Node @key(fields: "id", resolvable: true) {
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+	"""
+	The shipment this order item was originally sent with.
+	"""
+	sentWith: Shipment
+}
+"""
+A connection to a list of `OrderItem` values.
+"""
+type OrderItemConnection @shareable {
+	"""
+	Whether this connection has a next page
+	"""
+	hasNextPage: Boolean!
+	"""
+	The resulting items.
+	"""
+	nodes: [OrderItem!]!
+	"""
+	The total amount of items in this connection
+	"""
+	totalCount: Int!
+}
+type Query {
+	"""
+	Calculates the fees for a collection of shipped items. Should only be called by the Order service
+	"""
+	calculateShipmentFees(
+		"""
+		The input for the calculateShipmentFees query.
+		"""
+		input: CalculateShipmentFeesInput!
+	): Int! @inaccessible
+	"""
+	Get a shipmentMethod by id
+	"""
+	shipmentMethod(
+		"""
+		The id of the shipmentMethod
+		"""
+		id: UUID!
+	): ShipmentMethod!
+	"""
+	Get all shipmentMethods
+	"""
+	shipmentMethods(
+		"""
+		Filtering
+		"""
+		filter: ShipmentMethodFilterInput
+
+		"""
+		Number of items to return
+		"""
+		first: Int
+
+		"""
+		Ordering
+		"""
+		orderBy: ShipmentMethodOrderInput
+
+		"""
+		Number of items to skip
+		"""
+		skip: Int
+	): ShipmentMethodConnection!
+}
+"""
+A return one or more OrderItems.
+"""
+type Return implements Node @key(fields: "id", resolvable: true) {
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+	"""
+	The associated Shipment
+	"""
+	shipment: Shipment!
+}
+"""
+A shipment caused by either an order or a return.
+"""
+type Shipment implements Node @key(fields: "id", resolvable: true) {
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+	"""
+	The order creating this shipment.
+	"""
+	order: Order
+	"""
+	The product return causing this shipment.
+	"""
+	return: Return
+	"""
+	Get all OrderItems sent with this shipment
+	"""
+	sentItems(
+		"""
+		Number of items to return
+		"""
+		first: Int
+
+		"""
+		Ordering
+		"""
+		orderBy: OrderItemOrderInput
+
+		"""
+		Number of items to skip
+		"""
+		skip: Int
+	): OrderItemConnection!
+	"""
+	The address this shipment is sent to.
+	"""
+	shipmentAddress: Address!
+	"""
+	The shipment method this shipment uses.
+	"""
+	shipmentMethod: ShipmentMethod!
+	"""
+	The status of the shipment.
+	"""
+	status: ShipmentStatus!
+}
+"""
+A connection to a list of `Shipment` values.
+"""
+type ShipmentConnection @shareable {
+	"""
+	Whether this connection has a next page
+	"""
+	hasNextPage: Boolean!
+	"""
+	The resulting items.
+	"""
+	nodes: [Shipment!]!
+	"""
+	The total amount of items in this connection
+	"""
+	totalCount: Int!
+}
+"""
+A shipment method supported by the external provider.
+"""
+type ShipmentMethod implements Node @key(fields: "id", resolvable: true) {
+	"""
+	If this shipment method is archived, the datetime it was archived.
+	"""
+	archivedAt: DateTime
+	"""
+	The base fees for the shipment method.
+	"""
+	baseFees: Int!
+	"""
+	Calculates the fees for a potential shipment.
+	"""
+	calculateFees(
+		"""
+		The input for the calculation.
+		"""
+		items: [ProductVariantVersionWithQuantityInput!]!
+	): Int!
+	"""
+	The description of the shipment method.
+	"""
+	description: String!
+	"""
+	The reference of the shipment method used by the external shipment provider.
+	"""
+	externalReference: String!
+	"""
+	The fees per item for the shipment method.
+	"""
+	feesPerItem: Int!
+	"""
+	The fees per kg for the shipment method.
+	"""
+	feesPerKg: Int!
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+	"""
+	If true, this shipment method is archived and can no longer be used.
+	"""
+	isArchived: Boolean!
+	"""
+	The name of the shipment method.
+	"""
+	name: String!
+}
+"""
+A connection to a list of `ShipmentMethod` values.
+"""
+type ShipmentMethodConnection @shareable {
+	"""
+	Whether this connection has a next page
+	"""
+	hasNextPage: Boolean!
+	"""
+	The resulting items.
+	"""
+	nodes: [ShipmentMethod!]!
+	"""
+	The total amount of items in this connection
+	"""
+	totalCount: Int!
+}
+"""
+A address associated with a user.
+"""
+type UserAddress implements Address @key(fields: "id", resolvable: false) {
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+}
+"""
+An address associated with the vendor.
+"""
+type VendorAddress implements Address @key(fields: "id", resolvable: false) {
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+}
+"""
+Order direction
+"""
+enum OrderDirection {
+	"""
+	Ascending order
+	"""
+	ASC
+	"""
+	Descending order
+	"""
+	DESC
+}
+"""
+OrderItem order fields
+"""
+enum OrderItemOrderField {
+	"""
+	Order order items by their id
+	"""
+	ID
+}
+"""
+Shipment method order fields
+"""
+enum ShipmentMethodOrderField {
+	"""
+	Order shipment methods by their id
+	"""
+	ID
+}
+"""
+Shipment  order fields
+"""
+enum ShipmentOrderField {
+	"""
+	Order shipment s by their id
+	"""
+	ID
+}
+"""
+The status of a shipment.
+"""
+enum ShipmentStatus {
+	"""
+	The shipment has been delivered.
+	"""
+	DELIVERED
+	"""
+	The shipment has failed.
+	"""
+	FAILED
+	"""
+	The shipment is in progress.
+	"""
+	IN_PROGRESS
+	"""
+	The shipment is pending.
+	"""
+	PENDING
+}
+"""
+A slightly refined version of RFC-3339 compliant DateTime Scalar
+"""
+scalar DateTime
+"""
+A universally unique identifier compliant UUID Scalar
+"""
+scalar UUID
+"""
+Input for the archiveShipmentMethod mutation.
+"""
+input ArchiveShipmentMethodInput {
+	"""
+	The id of the shipment method to archive.
+	"""
+	id: UUID!
+}
+"""
+Input for calculateShipmentFees query.
+"""
+input CalculateShipmentFeesInput @inaccessible {
+	"""
+	The items to calculate the shipment fees for.
+	"""
+	items: [ProductVariantVersionWithQuantityAndShipmentMethodInput!]!
+}
+"""
+Input for the createShipmentMethod mutation.
+"""
+input CreateShipmentMethodInput {
+	"""
+	The base fees for the shipment method.
+	"""
+	baseFees: Int!
+	"""
+	The description of the shipment method.
+	"""
+	description: String!
+	"""
+	The reference of the shipment method used by the external shipment provider.
+	"""
+	externalReference: String!
+	"""
+	The fees per item for the shipment method.
+	"""
+	feesPerItem: Int!
+	"""
+	The fees per kg for the shipment method.
+	"""
+	feesPerKg: Int!
+	"""
+	The name of the shipment method.
+	"""
+	name: String!
+}
+"""
+OrderItem order
+"""
+input OrderItemOrderInput {
+	"""
+	The direction to order by
+	"""
+	direction: OrderDirection
+	"""
+	The field to order by
+	"""
+	field: OrderItemOrderField
+}
+"""
+Input for a product variant version with a quantity and shipment method.
+"""
+input ProductVariantVersionWithQuantityAndShipmentMethodInput {
+	"""
+	The product variant version id.
+	"""
+	productVariantVersionId: UUID!
+	"""
+	The quantity of the product variant version.
+	"""
+	quantity: Int!
+	"""
+	The id of the shipment method.
+	"""
+	shipmentMethodId: UUID!
+}
+"""
+Input for a product variant version with a quantity.
+"""
+input ProductVariantVersionWithQuantityInput {
+	"""
+	The product variant version id.
+	"""
+	productVariantVersionId: UUID!
+	"""
+	The quantity of the product variant version.
+	"""
+	quantity: Int!
+}
+"""
+Shipment filter
+"""
+input ShipmentFilterInput {
+	"""
+	Filter shipments by their status
+	"""
+	status: ShipmentStatus
+}
+"""
+Shipment method filter
+"""
+input ShipmentMethodFilterInput {
+	"""
+	Filter shipment methods by their archived status
+	"""
+	isArchived: Boolean
+}
+"""
+Shipment method order
+"""
+input ShipmentMethodOrderInput {
+	"""
+	The direction to order by
+	"""
+	direction: OrderDirection
+	"""
+	The field to order by
+	"""
+	field: ShipmentMethodOrderField
+}
+"""
+Shipment  order
+"""
+input ShipmentOrderInput {
+	"""
+	The direction to order by
+	"""
+	direction: OrderDirection
+	"""
+	The field to order by
+	"""
+	field: ShipmentOrderField
+}

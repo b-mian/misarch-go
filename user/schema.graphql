@@ -1,0 +1,209 @@
+extend schema @link(url: "https://specs.apollo.dev/federation/v2.5", import: ["@key", "@shareable", "@inaccessible"])
+
+"""
+An object with an ID.
+"""
+interface Node {
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+}
+type Mutation {
+	updateUser(
+		"""
+		Input for the updateUser mutation
+		"""
+		input: UpdateUserInput!
+	): User!
+}
+"""
+A name consisting of a firstName and lastName.
+"""
+type Name @shareable {
+	"""
+	The first name of the user
+	"""
+	firstName: String!
+	"""
+	The last name of the user
+	"""
+	lastName: String!
+}
+type Query {
+	"""
+	Get the currently authenticated user
+	"""
+	currentUser: User
+	"""
+	Get a user by id
+	"""
+	user(
+		"""
+		The id of the user
+		"""
+		id: UUID!
+	): User!
+	"""
+	Get all users
+	"""
+	users(
+		"""
+		Number of items to return
+		"""
+		first: Int
+
+		"""
+		Ordering
+		"""
+		orderBy: UserOrderInput
+
+		"""
+		Number of items to skip
+		"""
+		skip: Int
+	): UserConnection!
+}
+"""
+A user.
+"""
+type User implements Node @key(fields: "id", resolvable: true) {
+	"""
+	The birthday of the user
+	"""
+	birthday: Date
+	"""
+	The date when the user joined
+	"""
+	dateJoined: DateTime!
+	"""
+	The gender of the user
+	"""
+	gender: Gender
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+	"""
+	The name of the user
+	"""
+	name: Name!
+	"""
+	The username of the user
+	"""
+	username: String!
+}
+"""
+A connection to a list of `User` values.
+"""
+type UserConnection @shareable {
+	"""
+	Whether this connection has a next page
+	"""
+	hasNextPage: Boolean!
+	"""
+	The resulting items.
+	"""
+	nodes: [User!]!
+	"""
+	The total amount of items in this connection
+	"""
+	totalCount: Int!
+}
+"""
+The gender of a user
+"""
+enum Gender {
+	"""
+	Diverse gender
+	"""
+	DIVERSE
+	"""
+	Female gender
+	"""
+	FEMALE
+	"""
+	Male gender
+	"""
+	MALE
+	"""
+	Other gender
+	"""
+	OTHER
+}
+"""
+Order direction
+"""
+enum OrderDirection {
+	"""
+	Ascending order
+	"""
+	ASC
+	"""
+	Descending order
+	"""
+	DESC
+}
+"""
+User order fields
+"""
+enum UserOrderField {
+	"""
+	Order users by their id
+	"""
+	ID
+	"""
+	Order users by their username
+	"""
+	USERNAME
+}
+"""
+An RFC-3339 compliant Full Date Scalar
+"""
+scalar Date
+"""
+A slightly refined version of RFC-3339 compliant DateTime Scalar
+"""
+scalar DateTime
+"""
+A universally unique identifier compliant UUID Scalar
+"""
+scalar UUID
+"""
+Input for the updateUser mutation
+"""
+input UpdateUserInput {
+	"""
+	The new birthday of the user
+	"""
+	birthday: Date
+	"""
+	The new first name of the user
+	"""
+	firstName: String
+	"""
+	The new gender of the user
+	"""
+	gender: Gender
+	"""
+	The id of the user to update
+	"""
+	id: UUID!
+	"""
+	The new last name of the user
+	"""
+	lastName: String
+}
+"""
+User order
+"""
+input UserOrderInput {
+	"""
+	The direction to order by
+	"""
+	direction: OrderDirection
+	"""
+	The field to order by
+	"""
+	field: UserOrderField
+}

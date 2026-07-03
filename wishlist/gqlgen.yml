@@ -1,0 +1,48 @@
+# gqlgen config for the wishlist service. Codegen: `go tool gqlgen generate` from
+# this directory (schema.graphql is produced from the canonical MiSArch
+# subgraph SDL by tools/sdlprep).
+schema:
+  - schema.graphql
+
+exec:
+  filename: graph/generated.go
+  package: graph
+
+model:
+  filename: graph/models_gen.go
+  package: graph
+
+resolver:
+  layout: follow-schema
+  dir: graph
+  package: graph
+  filename_template: "{name}.resolvers.go"
+
+federation:
+  filename: graph/federation.go
+  package: graph
+  version: 2
+
+omit_slice_element_pointers: true
+omit_getters: true
+
+models:
+  UUID:
+    model: misarch/pkg/scalars.UUID
+  DateTime:
+    model: misarch/pkg/scalars.DateTime
+  # Relationship fields are resolved lazily (never eagerly embedded): they hit
+  # another entity/connection and must not run queries for unrequested fields.
+  Wishlist:
+    fields:
+      user: { resolver: true }
+      productVariants: { resolver: true }
+    extraFields:
+      # Internal FKs the field resolvers need; not part of the GraphQL schema.
+      UserID:
+        type: github.com/google/uuid.UUID
+      ProductVariantIDs:
+        type: "[]github.com/google/uuid.UUID"
+  User:
+    fields:
+      wishlists: { resolver: true }

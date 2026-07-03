@@ -1,0 +1,53 @@
+services:
+  payment:
+    restart: unless-stopped
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        SERVICE: payment
+    healthcheck:
+      test: ["CMD", "/service", "healthcheck"]
+      interval: 1s
+      timeout: 10s
+      retries: 20
+      start_period: 3s
+    depends_on:
+      payment-db:
+        condition: service_healthy
+    environment:
+      - MONGODB_URI=mongodb://payment-db:27017
+      - DATABASE_NAME=misarch
+      - SIMULATION_URL=http://simulation:8080
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+      - OTEL_METRIC_EXPORT_INTERVAL=5000
+      - OTEL_SERVICE_NAME=payment
+  payment-db:
+    image: mongo:6.0
+    hostname: payment-db
+    restart: always
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+    volumes:
+      - payment-db-data:/data/db
+  payment-dapr:
+    image: "daprio/daprd:edge"
+    network_mode: "service:payment"
+    command:
+      [
+        "./daprd",
+        "--app-id",
+        "payment",
+        "--app-port",
+        "${EXPERIMENT_CONFIG_SIDECAR_PORT:-8080}",
+        "--dapr-http-port",
+        "3500",
+        "-placement-host-address",
+        "placement:50006",
+        "--config",
+        "/config.yaml",
+        "--resources-path",
+        "/components",
+      ]
+volumes:
+  payment-db-data:

@@ -1,0 +1,53 @@
+# gqlgen config for the return service. Codegen: `go tool gqlgen generate` from
+# this directory (schema.graphql is produced from the canonical MiSArch
+# subgraph SDL by tools/sdlprep).
+schema:
+  - schema.graphql
+
+exec:
+  filename: graph/generated.go
+  package: graph
+
+model:
+  filename: graph/models_gen.go
+  package: graph
+
+resolver:
+  layout: follow-schema
+  dir: graph
+  package: graph
+  filename_template: "{name}.resolvers.go"
+
+federation:
+  filename: graph/federation.go
+  package: graph
+  version: 2
+
+omit_slice_element_pointers: true
+omit_getters: true
+
+models:
+  UUID:
+    model: misarch/pkg/scalars.UUID
+  DateTime:
+    model: misarch/pkg/scalars.DateTime
+  # Relationship fields are resolved lazily via field resolvers (never eagerly
+  # embedded in the parent struct) so unrequested edges execute no queries and
+  # cyclic references terminate. The extraFields carry the internal FKs the
+  # resolvers need; they are not part of the public schema.
+  Return:
+    fields:
+      order: { resolver: true }
+      returnedItems: { resolver: true }
+    extraFields:
+      OrderID:
+        type: github.com/google/uuid.UUID
+  OrderItem:
+    fields:
+      returnedWith: { resolver: true }
+    extraFields:
+      ReturnedWithID:
+        type: "*github.com/google/uuid.UUID"
+  User:
+    fields:
+      returns: { resolver: true }

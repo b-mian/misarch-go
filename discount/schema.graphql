@@ -1,0 +1,905 @@
+extend schema @link(url: "https://specs.apollo.dev/federation/v2.5", import: ["@key", "@shareable", "@inaccessible"])
+
+"""
+An object with an ID.
+"""
+interface Node {
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+}
+"""
+A category
+"""
+type Category implements Node @key(fields: "id", resolvable: true) {
+	"""
+	Get all discounts which apply directly to this category
+	"""
+	discounts(
+		"""
+		Number of items to return
+		"""
+		first: Int
+
+		"""
+		Ordering
+		"""
+		orderBy: DiscountOrderInput
+
+		"""
+		Number of items to skip
+		"""
+		skip: Int
+	): DiscountConnection!
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+}
+"""
+A connection to a list of `Category` values.
+"""
+type CategoryConnection @shareable {
+	"""
+	Whether this connection has a next page
+	"""
+	hasNextPage: Boolean!
+	"""
+	The resulting items.
+	"""
+	nodes: [Category!]!
+	"""
+	The total amount of items in this connection
+	"""
+	totalCount: Int!
+}
+"""
+A coupon
+"""
+type Coupon implements Node @key(fields: "id", resolvable: true) {
+	"""
+	The code of the coupon.
+	"""
+	code: String!
+	"""
+	The discount granted by this coupon.
+	"""
+	discount: Discount!
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+	"""
+	The maximum number of times the coupon can be used.
+	"""
+	maxUsages: Int
+	"""
+	The number of times the coupon has been used.
+	"""
+	usages: Int!
+	"""
+	Get all users who claimed this coupon.
+	"""
+	users(
+		"""
+		Number of items to return
+		"""
+		first: Int
+
+		"""
+		Ordering
+		"""
+		orderBy: CommonOrderInput
+
+		"""
+		Number of items to skip
+		"""
+		skip: Int
+	): UserConnection!
+	"""
+	The date and time from which the coupon is valid.
+	"""
+	validFrom: DateTime!
+	"""
+	The date and time until which the coupon is valid.
+	"""
+	validUntil: DateTime!
+}
+"""
+A connection to a list of `Coupon` values.
+"""
+type CouponConnection @shareable {
+	"""
+	Whether this connection has a next page
+	"""
+	hasNextPage: Boolean!
+	"""
+	The resulting items.
+	"""
+	nodes: [Coupon!]!
+	"""
+	The total amount of items in this connection
+	"""
+	totalCount: Int!
+}
+"""
+A discount.
+Multiple discounts are applied multiplicatively:
+discounted = original * (1 - discount1) * (1 - discount2) * ...
+"""
+type Discount implements Node @key(fields: "id", resolvable: true) {
+	"""
+	The discount applied to the order item, e.g. 0.2 meaning a 20% reduction in price.
+	Multiple discounts are applied multiplicatively:
+	discounted = original * (1 - discount1) * (1 - discount2) * ...
+	"""
+	discount: Float!
+	"""
+	Get all categories to which this discount directly applies
+	"""
+	discountAppliesToCategories(
+		"""
+		Number of items to return
+		"""
+		first: Int
+
+		"""
+		Ordering
+		"""
+		orderBy: CommonOrderInput
+
+		"""
+		Number of items to skip
+		"""
+		skip: Int
+	): CategoryConnection!
+	"""
+	Get all product variants to which this discount directly applies
+	"""
+	discountAppliesToProductVariants(
+		"""
+		Number of items to return
+		"""
+		first: Int
+
+		"""
+		Ordering
+		"""
+		orderBy: CommonOrderInput
+
+		"""
+		Number of items to skip
+		"""
+		skip: Int
+	): ProductVariantConnection!
+	"""
+	Get all products to which this discount directly applies
+	"""
+	discountAppliesToProducts(
+		"""
+		Number of items to return
+		"""
+		first: Int
+
+		"""
+		Ordering
+		"""
+		orderBy: CommonOrderInput
+
+		"""
+		Number of items to skip
+		"""
+		skip: Int
+	): ProductConnection!
+	"""
+	Get all product variants to which this discount directly applies
+	"""
+	discountRequiresCoupon(
+		"""
+		Filtering
+		"""
+		filter: CouponFilterInput
+
+		"""
+		Number of items to return
+		"""
+		first: Int
+
+		"""
+		Ordering
+		"""
+		orderBy: CouponOrderInput
+
+		"""
+		Number of items to skip
+		"""
+		skip: Int
+	): CouponConnection!
+	"""
+	Get all the usages of this discount by all users.
+	"""
+	discountUsages(
+		"""
+		Number of items to return
+		"""
+		first: Int
+
+		"""
+		Ordering
+		"""
+		orderBy: DiscountUsageOrderInput
+
+		"""
+		Number of items to skip
+		"""
+		skip: Int
+	): DiscountUsageConnection!
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+	"""
+	The maximum number of times a user can use this discount in bought ProductItems.
+	"""
+	maxUsagesPerUser: Int
+	"""
+	The minimum order amount required to use this discount.
+	"""
+	minOrderAmount: Int
+	"""
+	The date and time from which the discount is valid.
+	"""
+	validFrom: DateTime!
+	"""
+	The date and time until which the discount is valid.
+	"""
+	validUntil: DateTime!
+}
+"""
+A connection to a list of `Discount` values.
+"""
+type DiscountConnection @shareable {
+	"""
+	Whether this connection has a next page
+	"""
+	hasNextPage: Boolean!
+	"""
+	The resulting items.
+	"""
+	nodes: [Discount!]!
+	"""
+	The total amount of items in this connection
+	"""
+	totalCount: Int!
+}
+"""
+Discount usage by a user.
+"""
+type DiscountUsage implements Node @key(fields: "id", resolvable: true) {
+	"""
+	The used discount.
+	"""
+	discount: Discount!
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+	"""
+	The amount of items the user has used this discount for.
+	"""
+	usages: Int!
+	"""
+	The user using the discount.
+	"""
+	user: User!
+}
+"""
+A connection to a list of `DiscountUsage` values.
+"""
+type DiscountUsageConnection @shareable {
+	"""
+	Whether this connection has a next page
+	"""
+	hasNextPage: Boolean!
+	"""
+	The resulting items.
+	"""
+	nodes: [DiscountUsage!]!
+	"""
+	The total amount of items in this connection
+	"""
+	totalCount: Int!
+}
+"""
+A list of discounts for a product variant (and count)
+"""
+type DiscountsForProductVariant @shareable {
+	"""
+	The number of items to which the discounts should be applied.
+	"""
+	count: Int!
+	"""
+	The list of applicable discounts
+	"""
+	discounts: [Discount!]!
+	"""
+	The product variant id for which discounts should be computed.
+	"""
+	productVariantId: UUID!
+}
+type Mutation {
+	"""
+	Create a new coupon
+	"""
+	createCoupon(
+		"""
+		Input for the createCoupon mutation
+		"""
+		input: CreateCouponInput!
+	): Coupon!
+	"""
+	Create a new discount
+	"""
+	createDiscount(
+		"""
+		Input for the createDiscount mutation
+		"""
+		input: CreateDiscountInput!
+	): Discount!
+	"""
+	Register a coupon
+	"""
+	registerCoupon(
+		"""
+		Input for the registerCoupon mutation
+		"""
+		input: RegisterCouponInput!
+	): Coupon!
+	"""
+	Update a coupon
+	"""
+	updateCoupon(
+		"""
+		Input for the updateCoupon mutation
+		"""
+		input: UpdateCouponInput!
+	): Coupon!
+	"""
+	Update a discount
+	"""
+	updateDiscount(
+		"""
+		Input for the updateDiscount mutation
+		"""
+		input: UpdateDiscountInput!
+	): Discount!
+}
+"""
+A product
+"""
+type Product implements Node @key(fields: "id", resolvable: true) {
+	"""
+	Get all discounts which apply directly to this product
+	"""
+	discounts(
+		"""
+		Number of items to return
+		"""
+		first: Int
+
+		"""
+		Ordering
+		"""
+		orderBy: DiscountOrderInput
+
+		"""
+		Number of items to skip
+		"""
+		skip: Int
+	): DiscountConnection!
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+}
+"""
+A connection to a list of `Product` values.
+"""
+type ProductConnection @shareable {
+	"""
+	Whether this connection has a next page
+	"""
+	hasNextPage: Boolean!
+	"""
+	The resulting items.
+	"""
+	nodes: [Product!]!
+	"""
+	The total amount of items in this connection
+	"""
+	totalCount: Int!
+}
+"""
+A product variant
+"""
+type ProductVariant implements Node @key(fields: "id", resolvable: true) {
+	"""
+	Get all discounts which apply to this product variant for the authenticated user
+	"""
+	applicableDiscounts(
+		"""
+		Number of items to return
+		"""
+		first: Int
+
+		"""
+		Ordering
+		"""
+		orderBy: DiscountOrderInput
+
+		"""
+		Number of items to skip
+		"""
+		skip: Int
+	): DiscountConnection!
+	"""
+	Get all discounts which apply directly to this product variant
+	"""
+	discounts(
+		"""
+		Number of items to return
+		"""
+		first: Int
+
+		"""
+		Ordering
+		"""
+		orderBy: DiscountOrderInput
+
+		"""
+		Number of items to skip
+		"""
+		skip: Int
+	): DiscountConnection!
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+}
+"""
+A connection to a list of `ProductVariant` values.
+"""
+type ProductVariantConnection @shareable {
+	"""
+	Whether this connection has a next page
+	"""
+	hasNextPage: Boolean!
+	"""
+	The resulting items.
+	"""
+	nodes: [ProductVariant!]!
+	"""
+	The total amount of items in this connection
+	"""
+	totalCount: Int!
+}
+type Query {
+	"""
+	Get a coupon by id
+	"""
+	coupon(
+		"""
+		The id of the coupon
+		"""
+		id: UUID!
+	): Coupon!
+	"""
+	Get a discount by id
+	"""
+	discount(
+		"""
+		The id of the discount
+		"""
+		id: UUID!
+	): Discount!
+	"""
+	Find all applicable discounts for a user and a list of product variant, count and coupon id triples
+	"""
+	findApplicableDiscounts(
+		"""
+		The input for the findApplicableDiscounts query.
+		"""
+		input: FindApplicableDiscountsInput!
+	): [DiscountsForProductVariant!]! @inaccessible
+}
+"""
+A user.
+"""
+type User implements Node @key(fields: "id", resolvable: true) {
+	"""
+	Get all coupons this user has claimed
+	"""
+	coupons(
+		"""
+		Filtering
+		"""
+		filter: CouponFilterInput
+
+		"""
+		Number of items to return
+		"""
+		first: Int
+
+		"""
+		Ordering
+		"""
+		orderBy: CouponOrderInput
+
+		"""
+		Number of items to skip
+		"""
+		skip: Int
+	): CouponConnection!
+	"""
+	Get all the discount usages by this user
+	"""
+	discountUsages(
+		"""
+		Number of items to return
+		"""
+		first: Int
+
+		"""
+		Ordering
+		"""
+		orderBy: DiscountUsageOrderInput
+
+		"""
+		Number of items to skip
+		"""
+		skip: Int
+	): DiscountUsageConnection!
+	"""
+	The ID of the node.
+	"""
+	id: UUID!
+}
+"""
+A connection to a list of `User` values.
+"""
+type UserConnection @shareable {
+	"""
+	Whether this connection has a next page
+	"""
+	hasNextPage: Boolean!
+	"""
+	The resulting items.
+	"""
+	nodes: [User!]!
+	"""
+	The total amount of items in this connection
+	"""
+	totalCount: Int!
+}
+"""
+Common order fields
+"""
+enum CommonOrderField {
+	"""
+	Order entities by their id
+	"""
+	ID
+}
+"""
+Coupon order fields
+"""
+enum CouponOrderField {
+	"""
+	Order coupons by their id
+	"""
+	ID
+	"""
+	Order coupons by the valid from date
+	"""
+	VALID_FROM
+	"""
+	Order coupons by the valid until date
+	"""
+	VALID_UNTIL
+}
+"""
+Discount order fields
+"""
+enum DiscountOrderField {
+	"""
+	Order discounts by their id
+	"""
+	ID
+	"""
+	Order discounts by the valid from date
+	"""
+	VALID_FROM
+	"""
+	Order discounts by the valid until date
+	"""
+	VALID_UNTIL
+}
+"""
+DiscountUsage order fields
+"""
+enum DiscountUsageOrderField {
+	"""
+	Order discount usages by their id
+	"""
+	ID
+	"""
+	Order discount usages by their usages
+	"""
+	USAGES
+}
+"""
+Order direction
+"""
+enum OrderDirection {
+	"""
+	Ascending order
+	"""
+	ASC
+	"""
+	Descending order
+	"""
+	DESC
+}
+"""
+A slightly refined version of RFC-3339 compliant DateTime Scalar
+"""
+scalar DateTime
+"""
+A universally unique identifier compliant UUID Scalar
+"""
+scalar UUID
+"""
+Discount order
+"""
+input CommonOrderInput {
+	"""
+	The direction to order by
+	"""
+	direction: OrderDirection
+	"""
+	The field to order by
+	"""
+	field: CommonOrderField
+}
+"""
+Coupon filter
+"""
+input CouponFilterInput {
+	"""
+	Filter weather the user with the provided id own the coupon, other users than the authenticated user require at least EMPLOYEE
+	"""
+	userHasCoupon: UUID
+}
+"""
+Coupon order
+"""
+input CouponOrderInput {
+	"""
+	The direction to order by
+	"""
+	direction: OrderDirection
+	"""
+	The field to order by
+	"""
+	field: CouponOrderField
+}
+"""
+Input for the createCoupon mutation.
+"""
+input CreateCouponInput {
+	"""
+	The code of the coupon.
+	"""
+	code: String!
+	"""
+	The id of the discount the coupon is for.
+	"""
+	discountId: UUID!
+	"""
+	The maximum number of times the coupon can be used.
+	"""
+	maxUsages: Int!
+	"""
+	The date and time from which the coupon is valid.
+	"""
+	validFrom: DateTime!
+	"""
+	The date and time until which the coupon is valid.
+	"""
+	validUntil: DateTime!
+}
+"""
+Input for the createDiscount mutation.
+"""
+input CreateDiscountInput {
+	"""
+	The discount applied to the order item.
+	"""
+	discount: Float!
+	"""
+	The category ids to which the discount applies.
+	"""
+	discountAppliesToCategoryIds: [UUID!]!
+	"""
+	The product ids to which the discount applies.
+	"""
+	discountAppliesToProductIds: [UUID!]!
+	"""
+	The product variant ids to which the discount applies.
+	"""
+	discountAppliesToProductVariantIds: [UUID!]!
+	"""
+	The maximum number of times a user can use this discount in bought ProductItems.
+	"""
+	maxUsagesPerUser: Int!
+	"""
+	The minimum order amount required to use this discount.
+	"""
+	minOrderAmount: Int
+	"""
+	The date and time from which the discount is valid.
+	"""
+	validFrom: DateTime!
+	"""
+	The date and time until which the discount is valid.
+	"""
+	validUntil: DateTime!
+}
+"""
+Discount order
+"""
+input DiscountOrderInput {
+	"""
+	The direction to order by
+	"""
+	direction: OrderDirection
+	"""
+	The field to order by
+	"""
+	field: DiscountOrderField
+}
+"""
+DiscountUsage order
+"""
+input DiscountUsageOrderInput {
+	"""
+	The direction to order by
+	"""
+	direction: OrderDirection
+	"""
+	The field to order by
+	"""
+	field: DiscountUsageOrderField
+}
+"""
+Input for the findApplicableDiscounts query.
+"""
+input FindApplicableDiscountsInput @inaccessible {
+	"""
+	The order amount, used to filter applicable discounts.
+	"""
+	orderAmount: Int!
+	"""
+	The list of product variants for which discounts should be computed.
+	"""
+	productVariants: [FindApplicableDiscountsProductVariantInput!]!
+	"""
+	The user id for which discounts should be computed.
+	"""
+	userId: UUID!
+}
+"""
+Triple of a product variant id, a count, and a list of coupon ids for which discounts should be computed
+"""
+input FindApplicableDiscountsProductVariantInput @inaccessible {
+	"""
+	The number of items to which the discounts should be applied.
+	"""
+	count: Int!
+	"""
+	The list of coupon ids for which discounts should be computed.
+	"""
+	couponIds: [UUID!]!
+	"""
+	The product variant id for which discounts should be computed.
+	"""
+	productVariantId: UUID!
+}
+"""
+Input for the registerCoupon mutation
+"""
+input RegisterCouponInput {
+	"""
+	The code of the coupon.
+	"""
+	code: String!
+	"""
+	The user who wants to register the coupon.
+	"""
+	userId: UUID!
+}
+"""
+Input for the updateCoupon mutation.
+"""
+input UpdateCouponInput {
+	"""
+	The code of the coupon.
+	"""
+	code: String
+	"""
+	The id of the coupon to update.
+	"""
+	id: UUID!
+	"""
+	The maximum number of times the coupon can be used.
+	"""
+	maxUsages: Int
+	"""
+	The date and time from which the coupon is valid.
+	"""
+	validFrom: DateTime
+	"""
+	The date and time until which the coupon is valid.
+	"""
+	validUntil: DateTime
+}
+"""
+Input for the updateDiscount mutation.
+"""
+input UpdateDiscountInput {
+	"""
+	Added category ids to which the discount applies.
+	"""
+	addedDiscountAppliesToCategoryIds: [UUID!]
+	"""
+	Added product ids to which the discount applies.
+	"""
+	addedDiscountAppliesToProductIds: [UUID!]
+	"""
+	Added product variant ids to which the discount applies.
+	"""
+	addedDiscountAppliesToProductVariantIds: [UUID!]
+	"""
+	The id of the discount to update.
+	"""
+	id: UUID!
+	"""
+	The discount applied to the order item.
+	"""
+	maxUsagesPerUser: Int
+	"""
+	The minimum order amount required to use this discount.
+	"""
+	minOrderAmount: Int
+	"""
+	Removed category ids to which the discount applies.
+	"""
+	removedDiscountAppliesToCategoryIds: [UUID!]
+	"""
+	Removed product ids to which the discount applies.
+	"""
+	removedDiscountAppliesToProductIds: [UUID!]
+	"""
+	Removed product variant ids to which the discount applies.
+	"""
+	removedDiscountAppliesToProductVariantIds: [UUID!]
+	"""
+	The date and time from which the discount is valid.
+	"""
+	validFrom: DateTime
+	"""
+	The date and time until which the discount is valid.
+	"""
+	validUntil: DateTime
+}

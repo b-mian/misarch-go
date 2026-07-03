@@ -1,0 +1,54 @@
+services:
+  media:
+    restart: unless-stopped
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        SERVICE: media
+    healthcheck:
+      test: ["CMD", "/service", "healthcheck"]
+      interval: 1s
+      timeout: 10s
+      retries: 20
+      start_period: 3s
+    depends_on:
+      - media-minio
+    environment:
+      - MINIO_ENDPOINT=http://media-minio:9000
+      - MONGODB_URI=mongodb://media-db:27017
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+      - OTEL_METRIC_EXPORT_INTERVAL=5000
+      - OTEL_SERVICE_NAME=media
+  media-minio:
+    image: minio/minio
+    environment:
+      MINIO_ROOT_USER: "admin"
+      MINIO_ROOT_PASSWORD: "password"
+      MINIO_REGION: eu-central-1
+    volumes:
+      - media-minio-data:/data
+    command: server --console-address ":9090" /data
+  media-dapr:
+    image: "daprio/daprd:edge"
+    command:
+      [
+        "./daprd",
+        "--app-id",
+        "media",
+        "--app-port",
+        "${EXPERIMENT_CONFIG_SIDECAR_PORT:-8080}",
+        "--app-protocol",
+        "http",
+        "--dapr-http-port",
+        "3500",
+        "-placement-host-address",
+        "placement:50006",
+        "--config",
+        "/config.yaml",
+        "--resources-path",
+        "/components",
+      ]
+    network_mode: "service:media"
+volumes:
+  media-minio-data:

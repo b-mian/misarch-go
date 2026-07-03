@@ -1,66 +1,15 @@
-[submodule "catalog"]
-	path = catalog
-	url = ../catalog
-[submodule "wishlist"]
-	path = wishlist
-	url = ../wishlist
 [submodule "frontend"]
 	path = frontend
 	url = ../frontend
-[submodule "inventory"]
-	path = inventory
-	url = ../inventory
-[submodule "shoppingcart"]
-	path = shoppingcart
-	url = ../shoppingcart
 [submodule "gateway"]
 	path = gateway
 	url = ../gateway
-[submodule "notification"]
-	path = notification
-	url = ../notification
-[submodule "user"]
-	path = user
-	url = ../user
 [submodule "keycloak"]
 	path = keycloak
 	url = ../keycloak
-[submodule "tax"]
-	path = tax
-	url = ../tax
-[submodule "review"]
-	path = review
-	url = ../review
-[submodule "address"]
-	path = address
-	url = ../address
-[submodule "shipment"]
-	path = shipment
-	url = ../shipment
-[submodule "discount"]
-	path = discount
-	url = ../discount
-[submodule "order"]
-	path = order
-	url = ../order
-[submodule "return"]
-	path = return
-	url = ../return
-[submodule "payment"]
-	path = payment
-	url = ../payment
-[submodule "simulation"]
-	path = simulation
-	url = ../simulation
-[submodule "media"]
-	path = media
-	url = ../media
 [submodule "experiment-config"]
 	path = experiment-config
 	url = ../experiment-config
-[submodule "invoice"]
-	path = invoice
-	url = ../invoice
 [submodule "experiment-config-sidecar"]
 	path = experiment-config-sidecar
 	url = ../experiment-config-sidecar

@@ -1,0 +1,81 @@
+# gqlgen config for the shipment service. Codegen: `go tool gqlgen generate` from
+# this directory (schema.graphql is produced from the canonical MiSArch
+# subgraph SDL by tools/sdlprep).
+schema:
+  - schema.graphql
+
+exec:
+  filename: graph/generated.go
+  package: graph
+
+model:
+  filename: graph/models_gen.go
+  package: graph
+
+resolver:
+  layout: follow-schema
+  dir: graph
+  package: graph
+  filename_template: "{name}.resolvers.go"
+
+federation:
+  filename: graph/federation.go
+  package: graph
+  version: 2
+
+omit_slice_element_pointers: true
+omit_getters: true
+
+models:
+  UUID:
+    model: misarch/pkg/scalars.UUID
+  DateTime:
+    model: misarch/pkg/scalars.DateTime
+  # Relationship fields are resolved lazily via field resolvers (never eagerly
+  # embedded in the parent struct) so unrequested edges execute no queries and
+  # cyclic references terminate. The extraFields carry the internal FKs the
+  # resolvers need; they are not part of the public schema.
+  Order:
+    fields:
+      shipments: { resolver: true }
+  OrderItem:
+    fields:
+      sentWith: { resolver: true }
+    extraFields:
+      # Local order-item rows carry the shipment they were first sent with;
+      # the federation stub path (unknown id) yields a nil SentWithID so
+      # sentWith resolves to null.
+      SentWithID:
+        type: "*github.com/google/uuid.UUID"
+  Return:
+    fields:
+      shipment: { resolver: true }
+  Shipment:
+    fields:
+      order: { resolver: true }
+      return: { resolver: true }
+      sentItems: { resolver: true }
+      shipmentAddress: { resolver: true }
+      shipmentMethod: { resolver: true }
+    extraFields:
+      ShipmentMethodID:
+        type: github.com/google/uuid.UUID
+      ShipmentAddressID:
+        type: github.com/google/uuid.UUID
+      OrderID:
+        type: "*github.com/google/uuid.UUID"
+      ReturnID:
+        type: "*github.com/google/uuid.UUID"
+  ShipmentMethod:
+    fields:
+      # externalReference is per-field auth-guarded (employee/admin only); it
+      # is resolved lazily so the auth check runs only when the field is
+      # selected. calculateFees takes arguments and must be a resolver.
+      externalReference: { resolver: true }
+      calculateFees: { resolver: true }
+    extraFields:
+      # The auth-guarded externalReference value is carried internally (under a
+      # distinct name so it does not collide with the ExternalReference resolver
+      # method) so the resolver can return it after the employee check.
+      ExternalRef:
+        type: string

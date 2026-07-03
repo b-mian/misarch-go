@@ -1,0 +1,469 @@
+extend schema @link(url: "https://specs.apollo.dev/federation/v2.5", import: ["@key", "@shareable", "@inaccessible"])
+
+"""
+Describes the fields that a foreign types can be ordered by.
+
+Only the id valid at the moment.
+"""
+enum CommonOrderField {
+	"""
+	Orders by "id".
+	"""
+	ID
+}
+"""
+Specifies the order of foreign types.
+"""
+input CommonOrderInput {
+	"""
+	Order direction of orders.
+	"""
+	direction: OrderDirection
+	"""
+	Field that orders should be ordered by.
+	"""
+	field: CommonOrderField
+}
+input CreateOrderInput {
+	"""
+	UUID of user owning the order.
+	"""
+	userId: UUID!
+	"""
+	OrderItems of order.
+	"""
+	orderItemInputs: [OrderItemInput!]!
+	"""
+	UUID of address to where the order should be shipped to.
+	"""
+	shipmentAddressId: UUID!
+	"""
+	UUID of address of invoice.
+	"""
+	invoiceAddressId: UUID!
+	"""
+	UUID of payment information that the order should be processed with.
+	"""
+	paymentInformationId: UUID!
+	"""
+	Optional VAT number.
+	"""
+	vatNumber: String
+}
+scalar DateTime
+"""
+Foreign type of a discount.
+"""
+type Discount @key(fields: "id", resolvable: false) {
+	"""
+	UUID of the discount.
+	"""
+	id: UUID!
+}
+"""
+A connection of discounts.
+"""
+type DiscountConnection @shareable {
+	"""
+	The resulting entities.
+	"""
+	nodes: [Discount!]!
+	"""
+	Whether this connection has a next page.
+	"""
+	hasNextPage: Boolean!
+	"""
+	The total amount of items in this connection.
+	"""
+	totalCount: Int!
+}
+type Mutation {
+	"""
+	Creates an order with `OrderStatus::Pending`.
+	"""
+	createOrder(
+		"""
+		CreateOrderInput
+		"""
+		input: CreateOrderInput!
+	): Order!
+	"""
+	Places an existing order by changing its status to `OrderStatus::Placed`.
+	
+	Adds optional payment authorization input to order DTO when placing order.
+	"""
+	placeOrder(
+		"""
+		PlaceOrderInput
+		"""
+		input: PlaceOrderInput!
+	): Order!
+}
+"""
+The order of a user.
+"""
+type Order @key(fields: "id") {
+	"""
+	Order UUID.
+	"""
+	id: UUID!
+	"""
+	User owning order.
+	"""
+	user: User!
+	"""
+	Timestamp when order was created.
+	"""
+	createdAt: DateTime!
+	"""
+	The status of the order.
+	"""
+	orderStatus: OrderStatus!
+	"""
+	Timestamp of order placement. `None` until order is placed.
+	"""
+	placedAt: DateTime
+	"""
+	The rejection reason if status of the order is `OrderStatus::Rejected`.
+	"""
+	rejectionReason: RejectionReason
+	"""
+	Address of invoice.
+	"""
+	invoiceAddress: UserAddress!
+	"""
+	Total compensatable amount of order.
+	"""
+	compensatableOrderAmount: Int!
+	"""
+	UUID of payment information that the order should be processed with.
+	"""
+	paymentInformationId: UUID!
+	"""
+	Retrieves order items.
+	"""
+	orderItems(
+		"""
+		Describes that the `first` N order items should be retrieved.
+		"""
+		first: Int
+
+		"""
+		Describes how many order items should be skipped at the beginning.
+		"""
+		skip: Int
+
+		"""
+		Specifies the order in which order items are retrieved.
+		"""
+		orderBy: CommonOrderInput
+	): OrderItemConnection!
+}
+"""
+A connection of orders.
+"""
+type OrderConnection @shareable {
+	"""
+	The resulting entities.
+	"""
+	nodes: [Order!]!
+	"""
+	Whether this connection has a next page.
+	"""
+	hasNextPage: Boolean!
+	"""
+	The total amount of items in this connection.
+	"""
+	totalCount: Int!
+}
+"""
+GraphQL order direction.
+"""
+enum OrderDirection {
+	"""
+	Ascending order direction.
+	"""
+	ASC
+	"""
+	Descending order direction.
+	"""
+	DESC
+}
+"""
+Describes an order item of an order.
+"""
+type OrderItem @key(fields: "id") {
+	"""
+	order item UUID.
+	"""
+	id: UUID!
+	"""
+	Timestamp when order item was created.
+	"""
+	createdAt: DateTime!
+	"""
+	Product variant associated with order item.
+	"""
+	productVariant: ProductVariant!
+	"""
+	Product variant version associated with order item.
+	"""
+	productVariantVersion: ProductVariantVersion!
+	"""
+	Tax rate version associated with order item.
+	"""
+	taxRateVersion: TaxRateVersion!
+	"""
+	Shopping cart item associated with order item.
+	"""
+	shoppingCartItem: ShoppingCartItem!
+	"""
+	Specifies the quantity of the order item.
+	"""
+	count: Int!
+	"""
+	Total cost of product item, which can also be refunded.
+	"""
+	compensatableAmount: Int!
+	"""
+	Shipment method of order item.
+	"""
+	shipmentMethod: ShipmentMethod!
+	"""
+	Retrieves discounts.
+	"""
+	discounts(
+		"""
+		Describes that the `first` N discounts should be retrieved.
+		"""
+		first: Int
+
+		"""
+		Describes how many discounts should be skipped at the beginning.
+		"""
+		skip: Int
+
+		"""
+		Specifies the order in which discounts are retrieved.
+		"""
+		orderBy: CommonOrderInput
+	): DiscountConnection!
+}
+"""
+A connection of order items.
+"""
+type OrderItemConnection @shareable {
+	"""
+	The resulting entities.
+	"""
+	nodes: [OrderItem!]!
+	"""
+	Whether this connection has a next page.
+	"""
+	hasNextPage: Boolean!
+	"""
+	The total amount of items in this connection.
+	"""
+	totalCount: Int!
+}
+input OrderItemInput {
+	"""
+	UUID of shopping cart item associated with order item.
+	"""
+	shoppingCartItemId: UUID!
+	"""
+	UUID of shipment method to use with order item.
+	"""
+	shipmentMethodId: UUID!
+	"""
+	UUIDs of coupons to use with order item.
+	"""
+	couponIds: [UUID!]!
+}
+"""
+Describes the fields that a order can be ordered by.
+"""
+enum OrderOrderField {
+	"""
+	Orders by "id".
+	"""
+	ID
+	"""
+	Orders by "user_id".
+	"""
+	USER_ID
+	"""
+	Orders by "name".
+	"""
+	NAME
+	"""
+	Orders by "created_at".
+	"""
+	CREATED_AT
+	"""
+	Orders by "last_updated_at".
+	"""
+	LAST_UPDATED_AT
+}
+"""
+Specifies the order of orders.
+"""
+input OrderOrderInput {
+	"""
+	Order direction of orders.
+	"""
+	direction: OrderDirection
+	"""
+	Field that orders should be ordered by.
+	"""
+	field: OrderOrderField
+}
+"""
+Describes if order is placed, or yet pending. An order can be rejected during its lifetime.
+"""
+enum OrderStatus {
+	"""
+	Order is saved a a template, this status can only last for max. 1 hour.
+	"""
+	PENDING
+	"""
+	Order is placed, which means SAGA for payment, fullfill and other validity checks need to be triggered.
+	"""
+	PLACED
+	"""
+	Something went wrong with the order and it was compensated in all relevant serivces.
+	"""
+	REJECTED
+}
+input PaymentAuthorizationInput {
+	"""
+	CVC/CVV number of 3-4 digits.
+	"""
+	cvc: Int
+}
+input PlaceOrderInput {
+	"""
+	UUID of order to place.
+	"""
+	id: UUID!
+	"""
+	Optional payment authorization data.
+	"""
+	paymentAuthorization: PaymentAuthorizationInput
+}
+"""
+Foreign type of a product variant.
+"""
+type ProductVariant @key(fields: "id", resolvable: false) {
+	"""
+	UUID of the product variant.
+	"""
+	id: UUID!
+}
+"""
+Foreign type of a product variant.
+"""
+type ProductVariantVersion @key(fields: "id", resolvable: false) {
+	"""
+	UUID of the product variant version.
+	"""
+	id: UUID!
+}
+type Query {
+	"""
+	Retrieves order of specific UUID.
+	"""
+	order(
+		"""
+		UUID of order to retrieve.
+		"""
+		id: UUID!
+	): Order!
+	"""
+	Retrieves order_item of specific UUID.
+	"""
+	orderItem(
+		"""
+		UUID of order_item to retrieve.
+		"""
+		id: UUID!
+	): OrderItem!
+}
+"""
+Describes the reason why an order was rejected, in case of rejection: `OrderStatus::Rejected`.
+"""
+enum RejectionReason {
+	"""
+	The order was rejected due to its invalid content.
+	"""
+	INVALID_ORDER_DATA
+	"""
+	The inventory service was not able to reserve inventory items according to the order.
+	"""
+	INVENTORY_RESERVATION_FAILED
+}
+"""
+Describes the method/provider that the shipment uses.
+"""
+type ShipmentMethod @key(fields: "id", resolvable: false) {
+	"""
+	UUID of the shipment method.
+	"""
+	id: UUID!
+}
+"""
+Foreign type of a shopping cart item.
+"""
+type ShoppingCartItem @key(fields: "id", resolvable: false) {
+	"""
+	UUID of the shopping cart item.
+	"""
+	id: UUID!
+}
+"""
+Foreign type of a tax rate version.
+"""
+type TaxRateVersion @key(fields: "id", resolvable: false) {
+	"""
+	UUID of the tax rate.
+	"""
+	id: UUID!
+}
+scalar UUID
+"""
+Type of a user owning orders.
+"""
+type User @key(fields: "id") {
+	"""
+	UUID of user.
+	"""
+	id: UUID!
+	"""
+	Retrieves orders of user.
+	"""
+	orders(
+		"""
+		Describes that the `first` N orders should be retrieved.
+		"""
+		first: Int
+
+		"""
+		Describes how many orders should be skipped at the beginning.
+		"""
+		skip: Int
+
+		"""
+		Specifies the order in which orders are retrieved.
+		"""
+		orderBy: OrderOrderInput
+	): OrderConnection!
+}
+"""
+Foreign type of an user address.
+"""
+type UserAddress @key(fields: "id", resolvable: false) {
+	"""
+	UUID of the product item.
+	"""
+	id: UUID!
+}
