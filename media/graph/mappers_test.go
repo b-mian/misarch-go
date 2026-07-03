@@ -17,7 +17,7 @@ func TestMimeSubtype(t *testing.T) {
 		{"image/jpeg", "jpeg", false}, // MIME subtype, not the "jpg" filename ext
 		{"application/pdf", "pdf", false},
 		{"text/plain", "plain", false},
-		{"image/svg+xml", "svg", false},         // subtype stops at '+'
+		{"image/svg+xml", "svg", false}, // subtype stops at '+'
 		{"application/vnd.api+json", "vnd.api", false},
 		{"text/plain; charset=utf-8", "plain", false}, // parameters stripped
 		{"not-a-mime", "", true},

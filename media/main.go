@@ -11,6 +11,7 @@ package main
 
 import (
 	"context"
+	"math"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
@@ -51,7 +52,22 @@ func main() {
 		gql.AddTransport(transport.GET{})
 		// media serves GraphQL file uploads via the multipart request spec
 		// (the Upload! scalar); without this transport uploads 400.
-		gql.AddTransport(transport.MultipartForm{})
+		//
+		// The Upload size MUST be effectively unlimited to mirror the Rust
+		// service (which read_to_end's the whole file with no cap) fronted by
+		// Nginx `client_max_body_size 0` (media spec §7, §10 step 2). gqlgen's
+		// MultipartForm treats a zero MaxUploadSize/MaxMemory as "use the 32 MiB
+		// default" (transport/http_form_multipart.go maxUploadSize/maxMemory),
+		// so a bare MultipartForm{} would reject any body over 32 MiB with
+		// "request body too large" before the resolver runs and truncate
+		// chunked uploads via http.MaxBytesReader. Use math.MaxInt64 so the
+		// ContentLength gate never trips and MaxBytesReader never truncates;
+		// MaxMemory is set the same so the part is buffered fully in memory,
+		// matching the Rust read_to_end (no temp-file spill).
+		gql.AddTransport(transport.MultipartForm{
+			MaxUploadSize: math.MaxInt64,
+			MaxMemory:     math.MaxInt64,
+		})
 		gql.SetQueryCache(lru.New[*ast.QueryDocument](1000))
 		gql.Use(extension.Introspection{})
 

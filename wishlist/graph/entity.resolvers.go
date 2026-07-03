@@ -7,19 +7,35 @@ package graph
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/google/uuid"
 )
 
-// FindUserByID is the resolver for the findUserByID field.
+// FindUserByID resolves the User entity through federation (spec §3.4). It looks
+// up the user in the local shadow collection; an unknown user id yields a
+// "not found" GraphQL error (NOT null — query_object errors on a miss). There is
+// NO authorization on this resolver.
 func (r *entityResolver) FindUserByID(ctx context.Context, id uuid.UUID) (*User, error) {
-	panic(fmt.Errorf("not implemented: FindUserByID - findUserByID"))
+	if err := r.Store.ValidateUser(ctx, id); err != nil {
+		return nil, err
+	}
+	return &User{ID: id}, nil
 }
 
-// FindWishlistByID is the resolver for the findWishlistByID field.
+// FindWishlistByID resolves the Wishlist entity through federation (spec §3.4).
+// Unusually for federation, this resolver IS authorization-gated exactly like
+// Query.wishlist: fetch first (missing id → "not found"), then authorize
+// (permissive or owner), then return the wishlist.
 func (r *entityResolver) FindWishlistByID(ctx context.Context, id uuid.UUID) (*Wishlist, error) {
-	panic(fmt.Errorf("not implemented: FindWishlistByID - findWishlistByID"))
+	w, err := r.Store.GetWishlist(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	owner := w.UserID
+	if err := authorizeUser(ctx, &owner); err != nil {
+		return nil, err
+	}
+	return toWishlist(w), nil
 }
 
 // Entity returns EntityResolver implementation.

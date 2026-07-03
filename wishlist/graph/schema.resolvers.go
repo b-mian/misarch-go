@@ -7,44 +7,178 @@ package graph
 
 import (
 	"context"
-	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 )
 
-// CreateWishlist is the resolver for the createWishlist field.
+// CreateWishlist adds a wishlist for input.userId with a deduped set of product
+// variants and a name (spec §3.2). Authorization is FIRST (permissive or the
+// caller is input.userId), BEFORE any DB validation. It then validates that
+// every product variant and the user already exist locally (shadow
+// collections), builds the wishlist with a fresh v4 UUID and one shared
+// created_at/last_updated_at timestamp, inserts it, and returns the re-fetched
+// persisted document. An empty productVariantIds list is allowed.
 func (r *mutationResolver) CreateWishlist(ctx context.Context, input CreateWishlistInput) (*Wishlist, error) {
-	panic(fmt.Errorf("not implemented: CreateWishlist - createWishlist"))
+	// 1. Authorize first (before touching the DB): permissive or input.userId.
+	if err := authorizeUser(ctx, &input.UserID); err != nil {
+		return nil, err
+	}
+
+	// Dedupe the incoming product-variant id list into a set (Rust HashSet).
+	ids := dedupeUUIDs(input.ProductVariantIds)
+
+	// 3a. Validate every product variant exists locally (first missing → error);
+	// an empty list passes trivially.
+	if err := r.Store.ValidateProductVariantIDs(ctx, ids); err != nil {
+		return nil, err
+	}
+	// 3b. Validate the user exists locally.
+	if err := r.Store.ValidateUser(ctx, input.UserID); err != nil {
+		return nil, err
+	}
+
+	// 5-8. Fresh UUID + now() for both timestamps, insert, re-fetch.
+	now := time.Now().UTC()
+	created, err := r.Store.CreateWishlist(ctx, input.UserID, ids, input.Name, now)
+	if err != nil {
+		return nil, err
+	}
+	return toWishlist(created), nil
 }
 
-// UpdateWishlist is the resolver for the updateWishlist field.
+// UpdateWishlist updates the name and/or product-variant set of a wishlist
+// (spec §3.2). The wishlist is fetched BEFORE authorization (a non-existent id
+// yields "not found", not an auth error). Each provided field is a separate
+// $set that bumps last_updated_at; providing neither field writes nothing and
+// leaves last_updated_at unchanged (no-op). A provided productVariantIds
+// REPLACES the whole set (empty clears it) and is validated first.
 func (r *mutationResolver) UpdateWishlist(ctx context.Context, input UpdateWishlistInput) (*Wishlist, error) {
-	panic(fmt.Errorf("not implemented: UpdateWishlist - updateWishlist"))
+	// 2. Fetch first (missing id → "not found").
+	existing, err := r.Store.GetWishlist(ctx, input.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	// 3. Authorize against the wishlist's owner.
+	owner := existing.UserID
+	if err := authorizeUser(ctx, &owner); err != nil {
+		return nil, err
+	}
+
+	// 4. One timestamp for whichever sub-update(s) run.
+	now := time.Now().UTC()
+
+	// 5. Update product variants (only if provided): validate then replace.
+	if input.ProductVariantIds != nil {
+		ids := dedupeUUIDs(input.ProductVariantIds)
+		if err := r.Store.ValidateProductVariantIDs(ctx, ids); err != nil {
+			return nil, err
+		}
+		if err := r.Store.UpdateProductVariantIDs(ctx, input.ID, ids, now); err != nil {
+			return nil, err
+		}
+	}
+
+	// 6. Update name (only if provided).
+	if input.Name != nil {
+		if err := r.Store.UpdateName(ctx, input.ID, *input.Name, now); err != nil {
+			return nil, err
+		}
+	}
+
+	// 7. Re-fetch and return (unchanged wishlist when neither field provided).
+	updated, err := r.Store.GetWishlist(ctx, input.ID)
+	if err != nil {
+		return nil, err
+	}
+	return toWishlist(updated), nil
 }
 
-// DeleteWishlist is the resolver for the deleteWishlist field.
+// DeleteWishlist hard-deletes a wishlist (spec §3.2). Fetch first (missing id →
+// "not found"), authorize against the owner, then delete_one and return true.
+// No tombstone, no event.
 func (r *mutationResolver) DeleteWishlist(ctx context.Context, id uuid.UUID) (bool, error) {
-	panic(fmt.Errorf("not implemented: DeleteWishlist - deleteWishlist"))
+	// 2. Fetch first (missing id → "not found").
+	existing, err := r.Store.GetWishlist(ctx, id)
+	if err != nil {
+		return false, err
+	}
+	// 3. Authorize against the owner.
+	owner := existing.UserID
+	if err := authorizeUser(ctx, &owner); err != nil {
+		return false, err
+	}
+	// 4-5. Hard delete, return true.
+	if err := r.Store.DeleteWishlist(ctx, id); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
-// Wishlist is the resolver for the wishlist field.
+// Wishlist retrieves a single wishlist by UUID (spec §3.1). The wishlist is
+// fetched FIRST, so a non-existent id yields "not found" (even for an
+// unauthenticated caller); authorization (permissive or owner) runs only after
+// a successful fetch.
 func (r *queryResolver) Wishlist(ctx context.Context, id uuid.UUID) (*Wishlist, error) {
-	panic(fmt.Errorf("not implemented: Wishlist - wishlist"))
+	w, err := r.Store.GetWishlist(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	owner := w.UserID
+	if err := authorizeUser(ctx, &owner); err != nil {
+		return nil, err
+	}
+	return toWishlist(w), nil
 }
 
-// Wishlists is the resolver for the wishlists field.
+// Wishlists is the federated User.wishlists contribution (spec §3.4). It
+// authorizes FIRST (permissive or the User being queried), then runs a
+// Mongo-side paginated find filtered to this user's wishlists with the
+// requested sort/skip/limit, and wraps the page into a WishlistConnection.
 func (r *userResolver) Wishlists(ctx context.Context, obj *User, first *int, skip *int, orderBy *WishlistOrderInput) (*WishlistConnection, error) {
-	panic(fmt.Errorf("not implemented: Wishlists - wishlists"))
+	// 1. Authorize before the DB query: permissive or self.
+	if err := authorizeUser(ctx, &obj.ID); err != nil {
+		return nil, err
+	}
+	// 2-6. Sort mapping + Mongo pagination filtered to this user.
+	sortKey, asc := wishlistSort(orderBy)
+	conn, err := r.Store.ListWishlistsByUser(ctx, obj.ID, first, skip, sortKey, asc)
+	if err != nil {
+		return nil, err
+	}
+	return toWishlistConnection(conn), nil
 }
 
-// User is the resolver for the user field.
+// User resolves Wishlist.user (spec §3.3). The wishlist embeds only the user's
+// id; resolve to a User entity stub. No authorization (access was gated at the
+// point the wishlist was obtained).
 func (r *wishlistResolver) User(ctx context.Context, obj *Wishlist) (*User, error) {
-	panic(fmt.Errorf("not implemented: User - user"))
+	return &User{ID: obj.UserID}, nil
 }
 
-// ProductVariants is the resolver for the productVariants field.
+// ProductVariants resolves Wishlist.productVariants (spec §3.3/§3.6): in-memory
+// pagination over the wishlist's embedded variant set (sort by variant UUID
+// with the orderBy direction, skip/take). No DB access, no authorization.
 func (r *wishlistResolver) ProductVariants(ctx context.Context, obj *Wishlist, first *int, skip *int, orderBy *CommonOrderInput) (*ProductVariantConnection, error) {
-	panic(fmt.Errorf("not implemented: ProductVariants - productVariants"))
+	return paginateProductVariants(obj.ProductVariantIDs, first, skip, orderBy), nil
+}
+
+// dedupeUUIDs de-duplicates a UUID list into a set, preserving first-seen order.
+// This mirrors the Rust HashSet<Uuid> semantics for productVariantIds: duplicate
+// ids collapse to one and no error is raised. Order is not observable (the set
+// is stored unordered and read back sorted by the productVariants resolver).
+func dedupeUUIDs(ids []uuid.UUID) []uuid.UUID {
+	seen := make(map[uuid.UUID]struct{}, len(ids))
+	out := make([]uuid.UUID, 0, len(ids))
+	for _, id := range ids {
+		if _, dup := seen[id]; dup {
+			continue
+		}
+		seen[id] = struct{}{}
+		out = append(out, id)
+	}
+	return out
 }
 
 // Mutation returns MutationResolver implementation.

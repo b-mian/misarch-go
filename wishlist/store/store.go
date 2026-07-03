@@ -82,12 +82,12 @@ func (b *binUUID) UnmarshalBSONValue(t bsontype.Type, data []byte) error {
 // the embedded `user` subdocument, and the stored variant array key must be
 // `internal_product_variants` (NOT productVariants / product_variant_ids).
 type wishlistDoc struct {
-	ID                       binUUID          `bson:"_id"`
-	User                     userDoc          `bson:"user"`
-	Name                     string           `bson:"name"`
-	CreatedAt                primitive.DateTime `bson:"created_at"`
-	LastUpdatedAt            primitive.DateTime `bson:"last_updated_at"`
-	InternalProductVariants  []productVariantDoc `bson:"internal_product_variants"`
+	ID                      binUUID             `bson:"_id"`
+	User                    userDoc             `bson:"user"`
+	Name                    string              `bson:"name"`
+	CreatedAt               primitive.DateTime  `bson:"created_at"`
+	LastUpdatedAt           primitive.DateTime  `bson:"last_updated_at"`
+	InternalProductVariants []productVariantDoc `bson:"internal_product_variants"`
 }
 
 // userDoc is the embedded user stub and the `users` shadow document: only _id.

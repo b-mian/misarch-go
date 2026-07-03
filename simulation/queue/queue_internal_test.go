@@ -32,8 +32,8 @@ func (b *stubBlocker) IsBlocked(id string) bool {
 
 // recordCallback records the (id, status) sent to each side.
 type recordCallback struct {
-	mu       sync.Mutex
-	payments [][2]string
+	mu        sync.Mutex
+	payments  [][2]string
 	shipments [][2]string
 }
 
