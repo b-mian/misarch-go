@@ -7,7 +7,7 @@ caching and a distroless static runtime. The goal is to cut the energy and
 memory footprint of the running cluster while preserving the system's external
 behavior exactly:
 
-- identical GraphQL federation subgraph schemas (Apollo Federation v2.5,
+- identical GraphQL subgraph schemas (Apollo Federation v2.5,
   composed by the unchanged gateway),
 - identical Dapr pub/sub topics, routes, and event payloads,
 - identical databases and compose topology (Postgres/MongoDB/MinIO/RabbitMQ
@@ -15,8 +15,7 @@ behavior exactly:
 - identical authorization semantics (gateway-issued `Authorized-User` header).
 
 The gateway, frontend, Keycloak, and the experiment tooling
-(experiment-config*, executors, testdata) remain upstream submodules — they are
-infrastructure, not business services.
+(experiment-config*, executors, testdata) remain consistent.
 
 ## Why this reduces energy & memory
 
@@ -32,7 +31,7 @@ infrastructure, not business services.
 fraction of the memory, idles at a fraction of the CPU, and rebuilds share one
 dependency layer.
 
-## Repository layout
+## Repository Layout
 
 ```
 Dockerfile                  ← THE common Dockerfile (all 17 services)
@@ -52,9 +51,9 @@ tools/sdlprep/              ← canonical SDL → gqlgen input schema converter
   docker-compose-base.yaml    service + db + dapr sidecar definition
 ```
 
-## Building & running
+## Building & Running
 
-Prebuilt upstream images no longer apply to the business services — they build
+Prebuilt upstream images no longer apply to the business services, they build
 locally from this repo (BuildKit required, default in modern Docker):
 
 ```sh
@@ -72,7 +71,7 @@ The first build downloads Go dependencies once; every further service build
 reuses that cached layer. Code changes to one service invalidate only that
 service's final build stage.
 
-### Local development
+### Local Development
 
 ```sh
 go build ./...                      # compile all services + platform
@@ -80,7 +79,7 @@ go vet ./...
 cd <service> && go tool gqlgen generate   # re-run codegen after resolver config changes
 ```
 
-## Fidelity notes
+## Notes
 
 - Subgraph SDLs are derived mechanically from the canonical
   [MiSArch/schemas](https://github.com/MiSArch/schemas) files by
