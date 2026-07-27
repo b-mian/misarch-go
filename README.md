@@ -17,20 +17,6 @@ behavior exactly:
 The gateway, frontend, Keycloak, and the experiment tooling
 (experiment-config*, executors, testdata) remain consistent.
 
-## Why this reduces energy & memory
-
-| | Before (JVM / Node / Rust mix) | After (Go) |
-|---|---|---|
-| Runtime image base | `eclipse-temurin:17` / `node:18` (200–400 MB) | distroless static (~2 MB) + single binary |
-| Process model | JVM heap + JIT warmup; Node event loop + V8 heap | AOT-compiled static binary, no shared runtime |
-| Typical idle RSS per service | 150–500 MB (JVM), 60–150 MB (Node) | 10–30 MB |
-| Cold start | seconds (JVM) | milliseconds |
-| Build caching | per-service dependency downloads | one shared `go mod download` layer for all 17 images |
-
-17 services × the per-service saving is the point: the whole cluster fits in a
-fraction of the memory, idles at a fraction of the CPU, and rebuilds share one
-dependency layer.
-
 ## Repository Layout
 
 ```
