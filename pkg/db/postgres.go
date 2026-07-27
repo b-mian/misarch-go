@@ -59,9 +59,21 @@ func Migrate(ctx context.Context, pool *pgxpool.Pool, migrations fs.FS) error {
 		return fmt.Errorf("create schema_migrations: %w", err)
 	}
 
+	// The services embed their migrations with //go:embed migrations/*.sql,
+	// which roots the FS at the package dir — and fs.Glob patterns never cross
+	// "/", so "*.sql" at the root matches nothing. Descend into migrations/
+	// when that layout is present.
+	if sub, subErr := fs.Sub(migrations, "migrations"); subErr == nil {
+		if names, _ := fs.Glob(sub, "*.sql"); len(names) > 0 {
+			migrations = sub
+		}
+	}
 	entries, err := fs.Glob(migrations, "*.sql")
 	if err != nil {
 		return err
+	}
+	if len(entries) == 0 {
+		return fmt.Errorf("no *.sql migrations found in embedded FS")
 	}
 	sort.Strings(entries)
 

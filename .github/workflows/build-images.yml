@@ -8,7 +8,7 @@ name: build-images
 
 on:
   push:
-    branches: [go-rewrite]
+    branches: [go-rewrite, vanilla]
   workflow_dispatch:
 
 permissions:
