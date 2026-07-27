@@ -67,9 +67,9 @@ cd <service> && go tool gqlgen generate   # re-run codegen after resolver config
 
 ## Notes
 
-- Subgraph SDLs are derived mechanically from the canonical
+- Subgraph SDLs are derived from
   [MiSArch/schemas](https://github.com/MiSArch/schemas) files by
-  `tools/sdlprep` (it strips only the federation machinery gqlgen regenerates
+  `tools/sdlprep` (it strips only the infra gqlgen regenerates
   itself). The gateway's committed supergraph inputs therefore stay valid.
 - Go services serve GraphQL on both `/` and `/graphql`, so both Dapr
   routing-URL styles in the gateway's `supergraph.yaml` keep working.
