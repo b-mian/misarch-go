@@ -33,7 +33,7 @@ Also, many services broke or were not able to run in the cloud due to various is
 which may be common when applying/configuring terraform infra meant for a completely 
 different runtime and architecture (JVM vs Golang). 
 
-Too many dependencies and bugs to track/resolve with limited time for one person :(
+Too many dependencies and bugs to track/resolve with limited time for one person (EVEN WITH AN LLM!!) :(
 
 ## License
 
