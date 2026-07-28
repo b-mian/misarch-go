@@ -1,33 +1,33 @@
 [submodule "frontend"]
 	path = frontend
-	url = ../frontend
+	url = https://github.com/misarch/frontend.git
 [submodule "gateway"]
 	path = gateway
-	url = ../gateway
+	url = https://github.com/misarch/gateway.git
 [submodule "keycloak"]
 	path = keycloak
-	url = ../keycloak
+	url = https://github.com/misarch/keycloak.git
 [submodule "experiment-config"]
 	path = experiment-config
-	url = ../experiment-config
+	url = https://github.com/misarch/experiment-config.git
 [submodule "experiment-config-sidecar"]
 	path = experiment-config-sidecar
-	url = ../experiment-config-sidecar
+	url = https://github.com/misarch/experiment-config-sidecar.git
 [submodule "experiment-config-frontend"]
 	path = experiment-config-frontend
-	url = ../experiment-config-frontend
+	url = https://github.com/misarch/experiment-config-frontend.git
 [submodule "experiment-executor-frontend"]
 	path = experiment-executor-frontend
-	url = ../experiment-executor-frontend
+	url = https://github.com/misarch/experiment-executor-frontend.git
 [submodule "experiment-executor"]
 	path = experiment-executor
-	url = ../experiment-executor
+	url = https://github.com/misarch/experiment-executor.git
 [submodule "gatling-executor"]
 	path = gatling-executor
-	url = ../gatling-executor
+	url = https://github.com/misarch/gatling-executor.git
 [submodule "chaostoolkit-executor"]
 	path = chaostoolkit-executor
-	url = ../chaostoolkit-executor
+	url = https://github.com/misarch/chaostoolkit-executor.git
 [submodule "testdata"]
 	path = testdata
-	url = ../testdata
+	url = https://github.com/misarch/testdata.git

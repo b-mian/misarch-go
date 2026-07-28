@@ -33,7 +33,10 @@ services:
     depends_on:
       - inventory-db
     restart: "no"
-    entrypoint: [ "bash", "-c", "sleep 10 && mongosh --host inventory-db:27017 --eval 'rs.initiate()'"]
+    # Retry until mongod accepts connections; idempotent if the RS already
+    # exists (a fixed sleep loses the race on cold multi-container starts,
+    # and nothing ever re-runs rs.initiate afterwards).
+    entrypoint: [ "bash", "-c", "until mongosh --host inventory-db:27017 --quiet --eval 'try { rs.status().ok } catch (e) { rs.initiate().ok }' | grep -q 1; do sleep 2; done; echo 'replica set ready'"]
   inventory-dapr:
     image: "daprio/daprd:edge"
     network_mode: "service:inventory"

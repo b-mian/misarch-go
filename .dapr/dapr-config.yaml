@@ -5,7 +5,7 @@ metadata:
   namespace: default
 spec:
   tracing:
-    samplingRate: "1"
+    samplingRate: "0"
     otel:
       endpointAddress: otel-collector:4317
       protocol: grpc

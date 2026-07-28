@@ -6,6 +6,10 @@ services:
     image: ghcr.io/misarch/gateway:main
     ports:
       - "8080:8080"
+    environment:
+      # The bundled Node auto-instrumentation makes the Mesh gateway collapse
+      # under concurrent load on small hosts; disable the OTEL SDK for local runs.
+      - OTEL_SDK_DISABLED=true
   gateway-dapr:
     extends:
       file: gateway/docker-compose-base.yaml
@@ -54,7 +58,7 @@ services:
     extends:
       file: catalog/docker-compose-base.yaml
       service: catalog
-    image: misarch-go/catalogatest
+    image: misarch-go/catalog:latest
   catalog-db:
     extends:
       file: catalog/docker-compose-base.yaml
@@ -80,7 +84,7 @@ services:
     extends:
       file: wishlist/docker-compose-base.yaml
       service: wishlist
-    image: misarch-go/wishlistatest
+    image: misarch-go/wishlist:latest
   wishlist-db:
     extends:
       file: wishlist/docker-compose-base.yaml
@@ -106,7 +110,7 @@ services:
     extends:
       file: shoppingcart/docker-compose-base.yaml
       service: shoppingcart
-    image: misarch-go/shoppingcartatest
+    image: misarch-go/shoppingcart:latest
   shoppingcart-db:
     extends:
       file: shoppingcart/docker-compose-base.yaml
@@ -132,7 +136,7 @@ services:
     extends:
       file: notification/docker-compose-base.yaml
       service: notification
-    image: misarch-go/notificationatest
+    image: misarch-go/notification:latest
   notification-db:
     extends:
       file: notification/docker-compose-base.yaml
@@ -158,7 +162,7 @@ services:
     extends:
       file: user/docker-compose-base.yaml
       service: user
-    image: misarch-go/useratest
+    image: misarch-go/user:latest
   user-db:
     extends:
       file: user/docker-compose-base.yaml
@@ -213,7 +217,7 @@ services:
     extends:
       file: inventory/docker-compose-base.yaml
       service: inventory
-    image: misarch-go/inventoryatest
+    image: misarch-go/inventory:latest
   inventory-db:
     extends:
       file: inventory/docker-compose-base.yaml
@@ -243,7 +247,7 @@ services:
     extends:
       file: tax/docker-compose-base.yaml
       service: tax
-    image: misarch-go/taxatest
+    image: misarch-go/tax:latest
   tax-db:
     extends:
       file: tax/docker-compose-base.yaml
@@ -269,7 +273,7 @@ services:
     extends:
       file: review/docker-compose-base.yaml
       service: review
-    image: misarch-go/reviewatest
+    image: misarch-go/review:latest
   review-db:
     extends:
       file: review/docker-compose-base.yaml
@@ -295,7 +299,7 @@ services:
     extends:
       file: address/docker-compose-base.yaml
       service: address
-    image: misarch-go/addressatest
+    image: misarch-go/address:latest
   address-db:
     extends:
       file: address/docker-compose-base.yaml
@@ -321,7 +325,7 @@ services:
     extends:
       file: discount/docker-compose-base.yaml
       service: discount
-    image: misarch-go/discountatest
+    image: misarch-go/discount:latest
   discount-db:
     extends:
       file: discount/docker-compose-base.yaml
@@ -347,7 +351,7 @@ services:
     extends:
       file: shipment/docker-compose-base.yaml
       service: shipment
-    image: misarch-go/shipmentatest
+    image: misarch-go/shipment:latest
     environment:
       - MISARCH_SHIPMENT_PROVIDER_ENDPOINT=http://simulation:8080/shipment/register
   shipment-db:
@@ -375,7 +379,7 @@ services:
     extends:
       file: return/docker-compose-base.yaml
       service: return
-    image: misarch-go/returnatest
+    image: misarch-go/return:latest
   return-db:
     extends:
       file: return/docker-compose-base.yaml
@@ -401,7 +405,7 @@ services:
     extends:
       file: payment/docker-compose-base.yaml
       service: payment
-    image: misarch-go/paymentatest
+    image: misarch-go/payment:latest
     environment:
       PAYMENT_PROVIDER_URL: http://simulation:8080/payment/register 
   payment-db:
@@ -429,7 +433,7 @@ services:
     extends:
       file: order/docker-compose-base.yaml
       service: order
-    image: misarch-go/orderatest
+    image: misarch-go/order:latest
   order-db:
     extends:
       file: order/docker-compose-base.yaml
@@ -455,7 +459,7 @@ services:
     extends:
       file: simulation/docker-compose-base.yaml
       service: simulation
-    image: misarch-go/simulationatest
+    image: misarch-go/simulation:latest
     ports:
       - "8090:8080"
   simulation-rabbitmq:
@@ -483,7 +487,7 @@ services:
     extends:
       file: media/docker-compose-base.yaml
       service: media
-    image: misarch-go/mediaatest
+    image: misarch-go/media:latest
     environment:
       MINIO_ENDPOINT: http://media-minio:9000
   media-minio:
@@ -511,7 +515,7 @@ services:
     extends:
       file: invoice/docker-compose-base.yaml
       service: invoice
-    image: misarch-go/invoiceatest
+    image: misarch-go/invoice:latest
   invoice-db:
     extends:
       file: invoice/docker-compose-base.yaml
