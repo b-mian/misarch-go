@@ -24,6 +24,17 @@ docker compose pull --ignore-buildable
 docker compose up -d --no-build
 ```
 
+## Building & Running ON GKE (Cloud)
+
+Unfortunately, one of the major limitations in this re-factor was lack of CPU/MEM 
+and resource quota to run the services in GKE.
+
+Also, many services broke or were not able to run in the cloud due to various issues, 
+which may be common when applying/configuring terraform infra meant for a completely 
+different runtime and architecture (JVM vs Golang). 
+
+Too many dependencies and bugs to track/resolve with limited time for one person :(
+
 ## License
 
 MisArch is [MIT licensed](LICENSE).
