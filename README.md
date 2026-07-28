@@ -24,20 +24,6 @@ docker compose pull --ignore-buildable
 docker compose up -d --no-build
 ```
 
-## Notes
-
-- Subgraph SDLs are derived from
-  [MiSArch/schemas](https://github.com/MiSArch/schemas) files by
-  `tools/sdlprep` (it strips only the infra gqlgen regenerates
-  itself). The gateway's committed supergraph inputs therefore stay valid.
-- Go services serve GraphQL on both `/` and `/graphql`, so both Dapr
-  routing-URL styles in the gateway's `supergraph.yaml` keep working.
-- Compose healthchecks use the service binary's built-in self-probe
-  (`/service healthcheck`) because distroless images contain no shell/wget.
-- Postgres services replace Flyway with embedded SQL migrations applied at
-  startup (`schema_migrations` table); Mongo services create their indexes at
-  startup.
-
 ## License
 
 MisArch is [MIT licensed](LICENSE).
