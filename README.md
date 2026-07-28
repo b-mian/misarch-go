@@ -7,35 +7,8 @@ caching and a distroless static runtime. The goal is to cut the energy and
 memory footprint of the running cluster while preserving the system's external
 behavior exactly:
 
-- identical GraphQL subgraph schemas (Apollo Federation v2.5,
-  composed by the unchanged gateway),
-- identical Dapr pub/sub topics, routes, and event payloads,
-- identical databases and compose topology (Postgres/MongoDB/MinIO/RabbitMQ
-  per service, same `-db`/`-dapr`/`-ecs` sidecar triplets),
-- identical authorization semantics (gateway-issued `Authorized-User` header).
-
 The gateway, frontend, Keycloak, and the experiment tooling
 (experiment-config*, executors, testdata) remain consistent.
-
-## Repository Layout
-
-```
-Dockerfile                  ← THE common Dockerfile (all 17 services)
-.dockerignore               ← allowlist keeping the build context minimal
-go.mod / go.sum             ← single Go module ("misarch") for all services
-pkg/                        ← shared platform: server bootstrap, auth header,
-                              Dapr pub/sub + invocation, Postgres/Mongo helpers,
-                              OTel metrics, GraphQL scalars
-tools/sdlprep/              ← canonical SDL → gqlgen input schema converter
-<service>/                  ← one dir per business service:
-  main.go                     wiring (server.Main pattern)
-  schema.graphql              gqlgen input derived from MiSArch/schemas SDL
-  gqlgen.yml                  codegen config
-  graph/                      generated federation code + hand-written resolvers
-  store/ (+ store/migrations) persistence layer (embedded SQL migrations)
-  events/                     Dapr topic constants + payload structs
-  docker-compose-base.yaml    service + db + dapr sidecar definition
-```
 
 ## Building & Running Locally
 
