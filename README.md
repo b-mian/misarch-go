@@ -37,32 +37,18 @@ tools/sdlprep/              ← canonical SDL → gqlgen input schema converter
   docker-compose-base.yaml    service + db + dapr sidecar definition
 ```
 
-## Building & Running
+## Building & Running Locally
 
 Prebuilt upstream images no longer apply to the business services, they build
 locally from this repo (BuildKit required, default in modern Docker):
 
 ```sh
-# build everything and start the full system
-docker compose up --build
-
-# or the dev variant (no ghcr images at all)
-docker compose -f docker-compose-dev.yaml up --build
-
-# build one service image by hand
-docker build --build-arg SERVICE=catalog -t misarch-go/catalog:latest .
-```
-
-The first build downloads Go dependencies once; every further service build
-reuses that cached layer. Code changes to one service invalidate only that
-service's final build stage.
-
-### Local Development
-
-```sh
-go build ./...                      # compile all services + platform
-go vet ./...
-cd <service> && go tool gqlgen generate   # re-run codegen after resolver config changes
+git clone -b vanilla https://github.com/b-mian/misarch-go.git
+cd misarch-go
+git submodule update --init
+for s in address catalog discount inventory invoice media notification order payment return review shipment shoppingcart simulation tax user wishlist; do docker compose build "$s"; done
+docker compose pull --ignore-buildable
+docker compose up -d --no-build
 ```
 
 ## Notes
