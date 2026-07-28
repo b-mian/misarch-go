@@ -18,8 +18,11 @@ locally from this repo (BuildKit required, default in modern Docker):
 ```sh
 git clone -b vanilla https://github.com/b-mian/misarch-go.git
 cd misarch-go
+
 git submodule update --init
+
 for s in address catalog discount inventory invoice media notification order payment return review shipment shoppingcart simulation tax user wishlist; do docker compose build "$s"; done
+
 docker compose pull --ignore-buildable
 docker compose up -d --no-build
 ```
